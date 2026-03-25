@@ -200,7 +200,20 @@ footer strong{color:var(--acc)}
 /* active client badge in header */
 #activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
 
-/* ── CLIENT DASHBOARD HOME ── */
+/* ── CLIENT NOTES ── */
+.notes-panel{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.5rem}
+.notes-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.notes-title{font-family:var(--serif);font-size:15px;font-weight:500;color:var(--txt);display:flex;align-items:center;gap:8px}
+.notes-title-icon{width:28px;height:28px;background:var(--accL);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notes-meta{display:flex;align-items:center;gap:10px}
+.notes-save-status{font-size:11px;color:var(--sub);transition:color .2s}
+.notes-save-status.saved{color:var(--acc)}
+.notes-save-status.saving{color:var(--amb)}
+.notes-charcount{font-size:11px;color:var(--sub)}
+.notes-textarea{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-family:var(--sans);font-size:13px;color:var(--txt);line-height:1.6;outline:none;resize:vertical;min-height:90px;transition:border-color .15s}
+.notes-textarea:focus{border-color:var(--acc)}
+.notes-timestamp{font-size:10px;color:var(--sub);margin-top:6px;text-align:right}
+
 #clientHome{display:none}
 .ch-hero{background:var(--acc);border-radius:16px;padding:2rem 2.5rem;margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap}
 .ch-hero-left{}
@@ -340,6 +353,21 @@ footer strong{color:var(--acc)}
     </div>
     <div class="ai-load" id="aiLoad"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Analyzing your financials...</span></div>
     <div class="ai-out" id="aiOut"></div>
+  </div>
+  <!-- ADVISOR NOTES -->
+  <div class="notes-panel" id="notesPanel">
+    <div class="notes-head">
+      <div class="notes-title">
+        <div class="notes-title-icon">📝</div>
+        Advisor notes
+      </div>
+      <div class="notes-meta">
+        <span class="notes-charcount" id="notesCharCount"></span>
+        <span class="notes-save-status" id="notesSaveStatus"></span>
+      </div>
+    </div>
+    <textarea class="notes-textarea" id="notesTextarea" placeholder="Log observations, flag risks, track next steps... e.g. 'Margins improving but cash runway is tight — revisit in 60 days'" oninput="notesOnInput(this)"></textarea>
+    <div class="notes-timestamp" id="notesTimestamp"></div>
   </div>
   <!-- INSIGHTS -->
   <div class="sec">Financial insights</div>
@@ -920,6 +948,7 @@ function go(){
   $('benchInd').textContent=IND.l;
   buildToolNav();
   render();
+  notesRender();
 }
 
 function buildToolNav(){
@@ -1258,8 +1287,7 @@ function renderOverview(){
       '<div class="psub">Drag levers to model changes</div>'+
       '<table id="plTable"></table>'+
     '</div>'+
-  '</div>'+
-  '<div class="panel"><div class="ptitle">Notes</div><textarea id="notes" rows="3" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:10px;font-family:var(--sans);font-size:13px;color:var(--txt);outline:none;resize:vertical" placeholder="Context for this period..." oninput="S.notes=this.value">'+esc(S.notes)+'</textarea></div>';
+  '</div>';
 
   ['sr1','sr2','sr3','sr4'].forEach(function(id,i){
     var el=$(id); if(!el) return;
@@ -1967,9 +1995,73 @@ function resetApp(){
   if(aiBtn){aiBtn.disabled=false;}
   var insBox=$('insightBox');
   if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
+  // Clear notes panel
+  var nta=$('notesTextarea'),ncc=$('notesCharCount'),nst=$('notesSaveStatus'),nts=$('notesTimestamp');
+  if(nta) nta.value='';
+  if(ncc) ncc.textContent='';
+  if(nst){nst.textContent='';nst.className='notes-save-status';}
+  if(nts) nts.textContent='';
+  clearTimeout(notesSaveTimer);
   // Clear active client badge on reset
   wsSetActiveBadge(null);
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── ADVISOR NOTES ─────────────────────────────────────────────────
+var notesSaveTimer = null;
+
+function notesOnInput(el){
+  S.notes = el.value;
+  // Char count
+  var cc = $('notesCharCount');
+  if(cc) cc.textContent = el.value.length > 0 ? el.value.length + ' chars' : '';
+  // Save status
+  var st = $('notesSaveStatus');
+  if(st){ st.textContent = 'Saving...'; st.className = 'notes-save-status saving'; }
+  // Debounced save — waits 800ms after last keystroke
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(function(){
+    notesSave();
+  }, 800);
+}
+
+function notesSave(){
+  wsSaveActive();
+  var st = $('notesSaveStatus');
+  if(st){ st.textContent = 'Saved'; st.className = 'notes-save-status saved'; }
+  notesUpdateTimestamp();
+  // Update the workspace index updatedAt so home card reflects the change
+  if(wsActiveId){
+    var idx = wsGetIndex();
+    var entry = idx.find(function(w){ return w.id===wsActiveId; });
+    if(entry){ entry.updatedAt = new Date().toISOString(); wsSetIndex(idx); }
+  }
+  // Fade saved label after 2.5s
+  setTimeout(function(){
+    var st2 = $('notesSaveStatus');
+    if(st2 && st2.textContent === 'Saved'){ st2.textContent = ''; st2.className = 'notes-save-status'; }
+  }, 2500);
+}
+
+function notesUpdateTimestamp(){
+  var ts = $('notesTimestamp');
+  if(!ts) return;
+  if(S.notes && S.notes.trim()){
+    ts.textContent = 'Last updated ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  } else {
+    ts.textContent = '';
+  }
+}
+
+function notesRender(){
+  var el = $('notesTextarea');
+  if(!el) return;
+  el.value = S.notes || '';
+  var cc = $('notesCharCount');
+  if(cc) cc.textContent = S.notes && S.notes.length > 0 ? S.notes.length + ' chars' : '';
+  var st = $('notesSaveStatus');
+  if(st){ st.textContent = ''; st.className = 'notes-save-status'; }
+  notesUpdateTimestamp();
 }
 
 // ── WORKSPACE SYSTEM ──────────────────────────────────────────────
@@ -2321,12 +2413,19 @@ function renderClientHome(){
         +'</div>';
       }
 
+      var notePreview = '';
+      if(hasData && saved.s.notes && saved.s.notes.trim()){
+        var firstLine = saved.s.notes.trim().split('\n')[0];
+        notePreview = '<div style="margin:0.5rem 0.18rem 0;padding:6px 8px;background:var(--accL);border-radius:6px;font-size:10px;color:var(--acc);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 '+esc(firstLine.length>70?firstLine.slice(0,70)+'…':firstLine)+'</div>';
+      }
+
       return '<div class="ch-card '+cardCls+'" onclick="wsLoadClient(\''+w.id+'\')">'
         +'<div class="ch-card-top">'
           +'<div class="ch-card-name" title="'+esc(w.name)+'">'+esc(w.name)+'</div>'
           +'<div class="ch-badge '+(sc?sc.cls:'no-data')+'">'+(sc?sc.g:'＋')+'</div>'
         +'</div>'
         +metricsHtml
+        +notePreview
         +'<div class="ch-card-footer">'
           +'<div class="ch-ind"><span>'+emoji+'</span><span>'+esc(ind.l)+'</span></div>'
           +'<div style="display:flex;align-items:center;gap:8px">'
