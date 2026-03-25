@@ -1674,7 +1674,223 @@ function handleJSON(e){
 }
 
 function exportPDF(){
-  window.print();
+  if(!S.revenue){ toast('No client data to export.'); return; }
+
+  var a = getAdj();
+  var rev = S.revenue, cogs = S.cogs, labor = S.labor, opex = S.opex;
+  var tot = cogs + labor;
+  var gm = rev - tot, gmP = rev ? gm/rev : 0;
+  var net = gm - opex, netP = rev ? net/rev : 0;
+  var lbP = rev ? labor/rev : 0, obP = rev ? opex/rev : 0;
+  var runway = S.avgMonthlyBurn>0 ? (S.currentCash||S.cashOnHand)/S.avgMonthlyBurn : 0;
+
+  // Health score
+  var p=0;
+  if(a.bGMp>=IND.gm)p+=35;else if(a.bGMp>=IND.gm*.75)p+=22;else if(a.bGMp>0)p+=10;
+  if(netP>=IND.net)p+=30;else if(netP>=IND.net*.5)p+=18;else if(netP>=0)p+=8;
+  if(lbP<=IND.lb)p+=20;else if(lbP<=IND.lb*1.3)p+=12;else p+=4;
+  if(obP<=IND.op)p+=15;else if(obP<=IND.op*1.3)p+=9;else p+=3;
+  var sc = p>=80?{g:'A',col:'#2a5c45',bg:'#e6f0eb',l:'Healthy — strong margins, on benchmark'}
+          :p>=60?{g:'B',col:'#1a3a70',bg:'#edf2fc',l:'Good — solid, one or two areas to improve'}
+          :p>=40?{g:'C',col:'#7a4f00',bg:'#fdf5e6',l:'Needs attention — margin pressure'}
+                :{g:'D',col:'#9e2b2b',bg:'#fdf1f1',l:'At risk — significant issues to address'};
+
+  // Benchmark bars (SVG-based for print fidelity)
+  function benchBar(label, val, target, invert){
+    var mn = invert?0:-.05, mx = invert?.8:.95;
+    var norm = function(v){ return Math.max(0,Math.min(100,(v-mn)/(mx-mn)*100)); };
+    var fw = norm(val), tw = norm(target);
+    var good = invert ? val<=target*1.2 : val>=target*.85;
+    var col = good?'#2a5c45': val>=(invert?target*1.5:target*.5)?'#7a4f00':'#9e2b2b';
+    var pct = function(v){ return (v*100).toFixed(1)+'%'; };
+    return '<div style="margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">'
+        +'<span style="color:#5c5954">'+label+'</span>'
+        +'<span style="font-family:monospace;font-weight:600;color:'+col+'">'+pct(val)+'</span>'
+      +'</div>'
+      +'<div style="height:7px;background:#edeae6;border-radius:4px;position:relative">'
+        +'<div style="height:100%;width:'+fw+'%;background:'+col+';border-radius:4px"></div>'
+        +'<div style="position:absolute;top:-2px;bottom:-2px;left:'+tw+'%;width:2px;background:#2a5c45;border-radius:1px"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:flex-end;font-size:10px;color:#8f8b87;margin-top:2px">Target: '+pct(target)+'</div>'
+    +'</div>';
+  }
+
+  // Top insights (max 3)
+  var insights = [];
+  if(gmP < IND.gm*.7) insights.push({type:'bad', text:'Gross margin ('+( gmP*100).toFixed(1)+'%) is critically below the '+IND.l+' benchmark of '+(IND.gm*100).toFixed(0)+'%.'});
+  else if(gmP < IND.gm) insights.push({type:'warn', text:'Gross margin ('+(gmP*100).toFixed(1)+'%) is below the '+(IND.gm*100).toFixed(0)+'% benchmark. Pricing or cost review recommended.'});
+  else insights.push({type:'good', text:'Gross margin ('+(gmP*100).toFixed(1)+'%) meets the '+IND.l+' benchmark of '+(IND.gm*100).toFixed(0)+'%.'});
+
+  if(net < 0) insights.push({type:'bad', text:'Net loss of '+fmt(Math.abs(net))+'/yr. Overhead exceeds gross profit. Break-even review required.'});
+  else if(netP < IND.net*.6) insights.push({type:'warn', text:'Net margin ('+(netP*100).toFixed(1)+'%) is below the '+(IND.net*100).toFixed(0)+'% benchmark. Overhead may be elevated.'});
+  else insights.push({type:'good', text:'Net margin ('+(netP*100).toFixed(1)+'%) is healthy and at or near the '+IND.l+' benchmark.'});
+
+  if(runway > 0 && runway < 3) insights.push({type:'bad', text:'Cash runway is '+runway.toFixed(1)+' months at current burn. Immediate cash flow action needed.'});
+  else if(runway > 0 && runway < 6) insights.push({type:'warn', text:'Cash runway of '+runway.toFixed(1)+' months. Review monthly burn and consider extending runway.'});
+  else if(runway >= 6) insights.push({type:'good', text:'Cash runway of '+runway.toFixed(1)+' months provides solid operating buffer.'});
+
+  insights = insights.slice(0,3);
+
+  var insightDot = {good:'#2a5c45', warn:'#7a4f00', bad:'#9e2b2b'};
+  var insightBg  = {good:'#e6f0eb', warn:'#fdf5e6', bad:'#fdf1f1'};
+  var insightBdr = {good:'#aecfbd', warn:'#e8d098', bad:'#e8b0b0'};
+
+  // Staff rows
+  var staffHtml = '';
+  if(S.staff && S.staff.length){
+    staffHtml = '<div style="margin-top:18px">'
+      +'<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8b87;font-weight:600;margin-bottom:8px">Staff summary</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr>'
+        +'<th style="text-align:left;padding:4px 6px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">Name</th>'
+        +'<th style="text-align:right;padding:4px 6px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">Total Comp</th>'
+      +'</tr></thead><tbody>'
+      +S.staff.slice(0,6).map(function(s){
+        return '<tr>'
+          +'<td style="padding:5px 6px;border-bottom:1px solid #edeae6;color:#1c1a18">'+esc(s.name||'')+'</td>'
+          +'<td style="padding:5px 6px;border-bottom:1px solid #edeae6;text-align:right;font-family:monospace;color:#1c1a18">'+fmt(s.total||0)+'</td>'
+        +'</tr>';
+      }).join('')
+      +(S.staff.length>6?'<tr><td colspan="2" style="padding:5px 6px;color:#8f8b87;font-size:11px">+ '+(S.staff.length-6)+' more staff members</td></tr>':'')
+      +'</tbody></table></div>';
+  }
+
+  // Notes
+  var notesHtml = '';
+  if(S.notes && S.notes.trim()){
+    notesHtml = '<div style="margin-top:18px;padding:12px 14px;background:#f5f3f0;border-radius:8px;border-left:3px solid #2a5c45">'
+      +'<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8b87;font-weight:600;margin-bottom:6px">Advisor notes</div>'
+      +'<div style="font-size:12px;color:#1c1a18;line-height:1.6">'+esc(S.notes).replace(/\n/g,'<br>')+'</div>'
+    +'</div>';
+  }
+
+  var reportDate = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var period = S.period || (S.periodMonths && S.periodMonths<12 ? S.periodMonths+'-month period (annualized)' : 'Annual');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<title>CFO Vault — '+esc(S.bizName||IND.l)+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;color:#1c1a18;background:#fff;padding:0}'
+    +'@page{size:letter portrait;margin:0.6in 0.65in}'
+    +'@media print{body{padding:0}}'
+    +'.page{max-width:720px;margin:0 auto;padding:32px 0}'
+    +'</style></head><body><div class="page">'
+
+    // ── HEADER ──
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid #2a5c45">'
+      +'<div>'
+        +'<div style="font-family:Georgia,serif;font-size:22px;font-weight:600;color:#2a5c45;margin-bottom:2px">CFO Vault</div>'
+        +'<div style="font-size:10px;color:#8f8b87;letter-spacing:.12em;text-transform:uppercase">Financial Health Report</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+        +'<div style="font-size:16px;font-weight:600;color:#1c1a18">'+esc(S.bizName||IND.l)+'</div>'
+        +'<div style="font-size:11px;color:#5c5954;margin-top:2px">'+esc(IND.l)+' · '+esc(period)+'</div>'
+        +'<div style="font-size:10px;color:#8f8b87;margin-top:2px">Generated '+reportDate+'</div>'
+      +'</div>'
+    +'</div>'
+
+    // ── HEALTH SCORE + KEY METRICS ──
+    +'<div style="display:grid;grid-template-columns:120px 1fr;gap:16px;margin-bottom:18px;align-items:start">'
+
+      // Score ring
+      +'<div style="background:'+sc.bg+';border:2px solid '+sc.col+';border-radius:12px;padding:16px;text-align:center">'
+        +'<div style="font-family:Georgia,serif;font-size:48px;font-weight:700;color:'+sc.col+';line-height:1">'+sc.g+'</div>'
+        +'<div style="font-size:10px;color:'+sc.col+';font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.05em">Health score</div>'
+        +'<div style="font-size:10px;color:#5c5954;margin-top:6px;line-height:1.4">'+sc.l+'</div>'
+      +'</div>'
+
+      // Metric cards grid
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        +[
+          {l:'Revenue',       v:fmt(rev),         s:fmt(rev/12)+'/mo',       c:'#edf2fc', bc:'#a8c0e0'},
+          {l:'Gross margin',  v:pc(gmP),           s:fmt(gm)+'/yr',           c:gmP>=IND.gm?'#e6f0eb':gmP<IND.gm*.7?'#fdf1f1':'#fdf5e6', bc:gmP>=IND.gm?'#aecfbd':gmP<IND.gm*.7?'#e8b0b0':'#e8d098'},
+          {l:'Net margin',    v:pc(netP),          s:(net<0?'-':'')+fmt(Math.abs(net))+'/yr', c:net>=0?'#e6f0eb':'#fdf1f1', bc:net>=0?'#aecfbd':'#e8b0b0'},
+          {l:'COGS + Labor',  v:fmt(tot),          s:rev?Math.round(tot/rev*100)+'% of revenue':'', c:'#fdf5e6', bc:'#e8d098'}
+        ].map(function(m){
+          return '<div style="background:'+m.c+';border:1px solid '+m.bc+';border-radius:8px;padding:10px 12px">'
+            +'<div style="font-size:10px;color:#5c5954;text-transform:uppercase;letter-spacing:.07em;font-weight:500;margin-bottom:3px">'+m.l+'</div>'
+            +'<div style="font-family:monospace;font-size:18px;font-weight:600;color:#1c1a18;line-height:1">'+m.v+'</div>'
+            +'<div style="font-size:10px;color:#8f8b87;margin-top:3px">'+m.s+'</div>'
+          +'</div>';
+        }).join('')
+      +'</div>'
+
+    +'</div>'
+
+    // ── BENCHMARKS ──
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:18px">'
+      +'<div>'
+        +'<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8b87;font-weight:600;margin-bottom:10px">Benchmarks vs '+esc(IND.l)+'</div>'
+        +benchBar('Gross margin', gmP, IND.gm, false)
+        +benchBar('Net margin', netP, IND.net, false)
+        +benchBar(IND.tL+' % of revenue', lbP, IND.lb, true)
+        +benchBar(IND.tO+' % of revenue', obP, IND.op, true)
+      +'</div>'
+
+      // ── INSIGHTS ──
+      +'<div>'
+        +'<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8b87;font-weight:600;margin-bottom:10px">Key insights</div>'
+        +insights.map(function(ins){
+          return '<div style="display:flex;gap:8px;margin-bottom:8px;padding:8px 10px;background:'+insightBg[ins.type]+';border:1px solid '+insightBdr[ins.type]+';border-radius:7px">'
+            +'<div style="width:6px;height:6px;border-radius:50%;background:'+insightDot[ins.type]+';margin-top:4px;flex-shrink:0"></div>'
+            +'<div style="font-size:11px;color:#1c1a18;line-height:1.5">'+ins.text+'</div>'
+          +'</div>';
+        }).join('')
+      +'</div>'
+    +'</div>'
+
+    // ── P&L SUMMARY TABLE ──
+    +'<div style="margin-bottom:18px">'
+      +'<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8b87;font-weight:600;margin-bottom:8px">P&L summary</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+        +'<thead><tr>'
+          +'<th style="text-align:left;padding:5px 8px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">Line item</th>'
+          +'<th style="text-align:right;padding:5px 8px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">Annual</th>'
+          +'<th style="text-align:right;padding:5px 8px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">Monthly</th>'
+          +'<th style="text-align:right;padding:5px 8px;border-bottom:1px solid #ddd9d4;color:#8f8b87;font-weight:500;font-size:10px;text-transform:uppercase">% Revenue</th>'
+        +'</tr></thead>'
+        +'<tbody>'
+        +[
+          {l:IND.tR,          v:rev,  bold:false, col:'#1a3a70'},
+          {l:IND.tC,          v:cogs, bold:false, col:'#1c1a18'},
+          {l:IND.tL,          v:labor,bold:false, col:'#1c1a18'},
+          {l:'Gross profit',  v:gm,   bold:true,  col:gm>=0?'#2a5c45':'#9e2b2b'},
+          {l:IND.tO,          v:opex, bold:false, col:'#1c1a18'},
+          {l:'Net income',    v:net,  bold:true,  col:net>=0?'#2a5c45':'#9e2b2b'}
+        ].map(function(r,i){
+          var isTotal = r.bold;
+          return '<tr style="'+(isTotal?'border-top:1.5px solid #c4beb8;':'')+'">'
+            +'<td style="padding:5px 8px;'+(isTotal?'font-weight:600;':'')+'color:'+r.col+';border-bottom:1px solid #edeae6">'+r.l+'</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-family:monospace;'+(isTotal?'font-weight:600;':'')+'color:'+r.col+';border-bottom:1px solid #edeae6">'+(r.v<0?'-':'')+fmt(Math.abs(r.v))+'</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-family:monospace;color:#5c5954;border-bottom:1px solid #edeae6">'+(r.v<0?'-':'')+fmt(Math.abs(r.v/12))+'</td>'
+            +'<td style="padding:5px 8px;text-align:right;font-family:monospace;color:#5c5954;border-bottom:1px solid #edeae6">'+(rev?Math.round(Math.abs(r.v)/rev*100)+'%':'—')+'</td>'
+          +'</tr>';
+        }).join('')
+        +'</tbody>'
+      +'</table>'
+    +'</div>'
+
+    // ── STAFF + NOTES ──
+    + staffHtml
+    + notesHtml
+
+    // ── FOOTER ──
+    +'<div style="margin-top:28px;padding-top:12px;border-top:1px solid #ddd9d4;display:flex;justify-content:space-between;align-items:center">'
+      +'<div style="font-size:10px;color:#8f8b87">Prepared by <strong style="color:#2a5c45">CFO Vault</strong> · cfovault.com</div>'
+      +'<div style="font-size:10px;color:#8f8b87">For informational purposes only. Not financial advice.</div>'
+    +'</div>'
+
+    +'</div></body></html>';
+
+  var win = window.open('','_blank','width=820,height=1060');
+  if(!win){ toast('Pop-up blocked — allow pop-ups and try again.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.addEventListener('load', function(){
+    setTimeout(function(){ win.focus(); win.print(); }, 400);
+  });
 }
 
 function resetApp(){
