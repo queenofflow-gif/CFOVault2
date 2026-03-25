@@ -198,7 +198,7 @@ footer strong{color:var(--acc)}
 .ws-empty{padding:2rem 1.25rem;text-align:center;color:var(--sub);font-size:13px;line-height:1.6}
 .ws-footer{padding:.85rem 1.25rem;border-top:1px solid var(--bdr);font-size:11px;color:var(--sub);line-height:1.5}
 /* active client badge in header */
-#activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
 
 /* ── CLIENT DASHBOARD HOME ── */
 #clientHome{display:none}
@@ -238,6 +238,9 @@ footer strong{color:var(--acc)}
 .ch-metric-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--txt);line-height:1}
 .ch-metric-val.vg{color:var(--acc)}.ch-metric-val.vr{color:var(--red)}.ch-metric-val.va{color:var(--amb)}
 .ch-card-footer{display:flex;align-items:center;justify-content:space-between}
+.ch-card-del{background:none;border:none;color:var(--sub);font-size:13px;padding:3px 7px;border-radius:6px;cursor:pointer;opacity:0;transition:opacity .15s;flex-shrink:0;line-height:1}
+.ch-card:hover .ch-card-del{opacity:1}
+.ch-card-del:hover{background:var(--redL);color:var(--red)}
 .ch-ind{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)}
 .ch-updated{font-size:10px;color:var(--sub)}
 .ch-no-data{padding:1.5rem 0;text-align:center}
@@ -273,7 +276,7 @@ footer strong{color:var(--acc)}
 <header>
   <span class="lmark" onclick="wsGetIndex().length?wsShowHome():null" style="cursor:pointer" title="Back to all clients">CFO Vault</span>
   <span class="ltag">CFO In Your Pocket</span>
-  <button class="hbtn" id="btnHome" onclick="wsShowHome()" style="display:none">&#x2302; All clients</button>
+  <button class="hbtn" id="btnHome" onclick="wsShowHome()" style="display:none">&#x2302; Dashboard</button>
   <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
   <div id="activeClientBadge"></div>
   <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
@@ -1997,9 +2000,11 @@ function wsSetActiveBadge(name){
   if(name){
     badge.style.display='flex';
     badge.textContent=name;
+    badge.title=name;
   } else {
     badge.style.display='none';
     badge.textContent='';
+    badge.title='';
   }
 }
 
@@ -2233,6 +2238,27 @@ function wsCalcScore(s){
   return p>=80?{g:'A',cls:'sA'}:p>=60?{g:'B',cls:'sB'}:p>=40?{g:'C',cls:'sC'}:{g:'D',cls:'sD'};
 }
 
+function chDeleteClient(id, name){
+  if(!confirm('Delete "'+name+'"? This cannot be undone.')) return;
+  var idx = wsGetIndex().filter(function(w){ return w.id!==id; });
+  wsSetIndex(idx);
+  wsDelClient(id);
+  if(wsActiveId===id){
+    wsActiveId=null;
+    localStorage.removeItem(WS_ACTIVE_KEY);
+    wsSetActiveBadge(null);
+  }
+  toast('Deleted: '+name);
+  if(idx.length===0){
+    // No clients left — show onboarding
+    $('clientHome').style.display='none';
+    $('onboard').style.display='block';
+    var btnHome=$('btnHome'); if(btnHome) btnHome.style.display='none';
+  } else {
+    renderClientHome();
+  }
+}
+
 function renderClientHome(){
   var homeEl = $('clientHome');
   if(!homeEl) return;
@@ -2297,13 +2323,16 @@ function renderClientHome(){
 
       return '<div class="ch-card '+cardCls+'" onclick="wsLoadClient(\''+w.id+'\')">'
         +'<div class="ch-card-top">'
-          +'<div class="ch-card-name">'+esc(w.name)+'</div>'
+          +'<div class="ch-card-name" title="'+esc(w.name)+'">'+esc(w.name)+'</div>'
           +'<div class="ch-badge '+(sc?sc.cls:'no-data')+'">'+(sc?sc.g:'＋')+'</div>'
         +'</div>'
         +metricsHtml
         +'<div class="ch-card-footer">'
           +'<div class="ch-ind"><span>'+emoji+'</span><span>'+esc(ind.l)+'</span></div>'
-          +'<div class="ch-updated">Updated '+updated+'</div>'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+            +'<div class="ch-updated">Updated '+updated+'</div>'
+            +'<button class="ch-card-del" onclick="event.stopPropagation();chDeleteClient(\''+w.id+'\',\''+w.name.replace(/'/g,"\\'")+'\')" title="Delete client">&#x2715;</button>'
+          +'</div>'
         +'</div>'
       +'</div>';
     }).join('');
@@ -2313,7 +2342,7 @@ function renderClientHome(){
     // Hero bar
     '<div class="ch-hero">'
       +'<div class="ch-hero-left">'
-        +'<div class="ch-greeting">'+greet+',<br><em>here\'s your practice.</em></div>'
+        +'<div class="ch-greeting">'+greet+',<br><em>let\'s check on your clients.</em></div>'
         +'<div class="ch-date">'+dateStr+'</div>'
       +'</div>'
       +'<div class="ch-hero-stats">'
