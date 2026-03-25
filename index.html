@@ -199,6 +199,57 @@ footer strong{color:var(--acc)}
 .ws-footer{padding:.85rem 1.25rem;border-top:1px solid var(--bdr);font-size:11px;color:var(--sub);line-height:1.5}
 /* active client badge in header */
 #activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── CLIENT DASHBOARD HOME ── */
+#clientHome{display:none}
+.ch-hero{background:var(--acc);border-radius:16px;padding:2rem 2.5rem;margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap}
+.ch-hero-left{}
+.ch-greeting{font-family:var(--serif);font-size:26px;color:#fff;font-weight:600;line-height:1.2;margin-bottom:.3rem}
+.ch-greeting em{color:#86efac;font-style:italic}
+.ch-date{font-size:12px;color:rgba(255,255,255,.6)}
+.ch-hero-stats{display:flex;gap:1.5rem}
+.ch-stat{text-align:center}
+.ch-stat-val{font-family:var(--mono);font-size:22px;font-weight:500;color:#fff;line-height:1}
+.ch-stat-lbl{font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.ch-sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.ch-sec-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:500}
+.ch-add{background:var(--acc);border:none;color:#fff;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;transition:background .15s}
+.ch-add:hover{background:var(--accM)}
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:2rem}
+.ch-card{background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:1.25rem 1.4rem;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.ch-card:hover{border-color:var(--acc);box-shadow:0 4px 16px rgba(42,92,69,.1);transform:translateY(-1px)}
+.ch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.ch-card.sA::before{background:var(--acc)}
+.ch-card.sB::before{background:var(--blu)}
+.ch-card.sC::before{background:var(--amb)}
+.ch-card.sD::before{background:var(--red)}
+.ch-card.no-data::before{background:var(--bdrS)}
+.ch-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem}
+.ch-card-name{font-size:15px;font-weight:600;color:var(--txt);line-height:1.3;flex:1;min-width:0;margin-right:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-badge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:18px;font-weight:600;flex-shrink:0;border:2px solid}
+.ch-badge.sA{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.ch-badge.sB{border-color:var(--blu);color:var(--blu);background:var(--bluL)}
+.ch-badge.sC{border-color:var(--amb);color:var(--amb);background:var(--ambL)}
+.ch-badge.sD{border-color:var(--red);color:var(--red);background:var(--redL)}
+.ch-badge.no-data{border-color:var(--bdrS);color:var(--sub);background:var(--surf2);font-size:16px}
+.ch-card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.85rem}
+.ch-metric{background:var(--bg);border-radius:7px;padding:7px 9px}
+.ch-metric-lbl{font-size:9px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;font-weight:500;margin-bottom:2px}
+.ch-metric-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--txt);line-height:1}
+.ch-metric-val.vg{color:var(--acc)}.ch-metric-val.vr{color:var(--red)}.ch-metric-val.va{color:var(--amb)}
+.ch-card-footer{display:flex;align-items:center;justify-content:space-between}
+.ch-ind{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)}
+.ch-updated{font-size:10px;color:var(--sub)}
+.ch-no-data{padding:1.5rem 0;text-align:center}
+.ch-no-data-icon{font-size:28px;margin-bottom:.5rem}
+.ch-no-data-txt{font-size:12px;color:var(--sub);line-height:1.5}
+.ch-no-data-btn{display:inline-block;margin-top:.75rem;background:var(--accL);border:1px solid #aecfbd;color:var(--acc);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer}
+.ch-no-data-btn:hover{background:var(--acc);color:#fff}
+.ch-empty{background:var(--surf);border:1.5px dashed var(--bdrS);border-radius:14px;padding:3rem;text-align:center;grid-column:1/-1}
+.ch-empty-icon{font-size:36px;margin-bottom:.75rem}
+.ch-empty-title{font-family:var(--serif);font-size:18px;font-weight:500;margin-bottom:.4rem}
+.ch-empty-sub{font-size:13px;color:var(--mut);max-width:360px;margin:0 auto 1.25rem}
+@media(max-width:600px){.ch-grid{grid-template-columns:1fr}.ch-hero{padding:1.5rem}.ch-hero-stats{gap:1rem}}
 </style>
 </head>
 <body>
@@ -220,8 +271,9 @@ footer strong{color:var(--acc)}
 </div>
 
 <header>
-  <span class="lmark">CFO Vault</span>
+  <span class="lmark" onclick="wsGetIndex().length?wsShowHome():null" style="cursor:pointer" title="Back to all clients">CFO Vault</span>
   <span class="ltag">CFO In Your Pocket</span>
+  <button class="hbtn" id="btnHome" onclick="wsShowHome()" style="display:none">&#x2302; All clients</button>
   <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
   <div id="activeClientBadge"></div>
   <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
@@ -233,6 +285,9 @@ footer strong{color:var(--acc)}
 <input type="file" id="xlFi" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jFi" accept=".json" style="display:none">
 <main>
+
+<!-- CLIENT DASHBOARD HOME -->
+<div id="clientHome"></div>
 
 <!-- ONBOARD -->
 <div id="onboard">
@@ -2021,6 +2076,9 @@ function wsLoadClient(id){
   var idx = wsGetIndex();
   var entry = idx.find(function(w){ return w.id===id; });
   wsSetActiveBadge(entry ? entry.name : null);
+  // Show "All clients" button, hide home
+  var btnHome=$('btnHome'); if(btnHome) btnHome.style.display='block';
+  $('clientHome').style.display='none';
   renderWorkspaceList();
   closeWorkspace();
 }
@@ -2108,21 +2166,172 @@ window.addEventListener('DOMContentLoaded', function(){
   if(btnC) btnC.style.display='flex';
 
   var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
-  if(savedActiveId){
-    var idx = wsGetIndex();
-    var entry = idx.find(function(w){ return w.id===savedActiveId; });
-    if(entry){
-      wsActiveId = savedActiveId;
-      var saved = wsGetClient(savedActiveId);
-      if(saved && saved.s && saved.s.revenue>0){
-        Object.assign(S, saved.s);
-        if(saved.pt) PT = saved.pt;
-        IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
-        wsSetActiveBadge(entry.name);
+  var idx = wsGetIndex();
+
+  if(idx.length > 0){
+    // Has workspaces — show the client dashboard home instead of onboarding
+    $('onboard').style.display='none';
+    if(savedActiveId){
+      var entry = idx.find(function(w){ return w.id===savedActiveId; });
+      if(entry){
+        wsActiveId = savedActiveId;
+        var saved = wsGetClient(savedActiveId);
+        if(saved && saved.s && saved.s.revenue>0){
+          Object.assign(S, saved.s);
+          if(saved.pt) PT = saved.pt;
+          IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+          wsSetActiveBadge(entry.name);
+          // Jump straight to dashboard if we have data for last active client
+          go();
+          return;
+        }
       }
     }
+    // Show the home screen
+    renderClientHome();
   }
 });
+
+// ── CLIENT DASHBOARD HOME ─────────────────────────────────────────
+function wsShowHome(){
+  wsSaveActive();
+  wsActiveId = null;
+  localStorage.removeItem(WS_ACTIVE_KEY);
+  wsSetActiveBadge(null);
+  // Reset S cleanly
+  periodData={revenue:0,cogs:0,labor:0,opex:0};
+  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[]};
+  IND=INDS.other; IND.key='other'; AT='overview'; PT=[];
+  Object.values(Charts).forEach(function(ch){try{ch.destroy();}catch(e){}});Charts={};
+  $('content').classList.remove('on');
+  $('onboard').style.display='none';
+  $('parseStatus').style.display='none';
+  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(id){$(id).style.display='none';});
+  var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
+  if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
+  if(aiLoad){aiLoad.classList.remove('show');}
+  if(aiBtn){aiBtn.disabled=false;}
+  if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
+  document.querySelectorAll('.ind-chip').forEach(function(c){c.classList.remove('sel');});
+  var btnHome=$('btnHome'); if(btnHome) btnHome.style.display='none';
+  renderClientHome();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function wsCalcScore(s){
+  if(!s||!s.revenue) return null;
+  var ind = INDS[s.industry]||INDS.other;
+  var rev=s.revenue,cogs=s.cogs,labor=s.labor,opex=s.opex;
+  var gm=rev-(cogs+labor), gmP=rev?gm/rev:0;
+  var net=gm-opex, netP=rev?net/rev:0;
+  var lbP=rev?labor/rev:0, obP=rev?opex/rev:0;
+  var p=0;
+  if(gmP>=ind.gm)p+=35;else if(gmP>=ind.gm*.75)p+=22;else if(gmP>0)p+=10;
+  if(netP>=ind.net)p+=30;else if(netP>=ind.net*.5)p+=18;else if(netP>=0)p+=8;
+  if(lbP<=ind.lb)p+=20;else if(lbP<=ind.lb*1.3)p+=12;else p+=4;
+  if(obP<=ind.op)p+=15;else if(obP<=ind.op*1.3)p+=9;else p+=3;
+  return p>=80?{g:'A',cls:'sA'}:p>=60?{g:'B',cls:'sB'}:p>=40?{g:'C',cls:'sC'}:{g:'D',cls:'sD'};
+}
+
+function renderClientHome(){
+  var homeEl = $('clientHome');
+  if(!homeEl) return;
+  var idx = wsGetIndex();
+  var EMOJIS = {restaurant:'🍽️',retail:'🛍️',agency:'💼',saas:'💻',healthcare:'🏥',construction:'🏗️',realestate:'🏠',manufacturing:'🏭',fitness:'💪',logistics:'🚛',law:'⚖️',msp:'🖥️',other:'📊'};
+
+  // Compute summary stats
+  var totalClients = idx.length;
+  var clientsWithData = 0, healthyCount = 0;
+  idx.forEach(function(w){
+    var saved = wsGetClient(w.id);
+    if(saved && saved.s && saved.s.revenue>0){
+      clientsWithData++;
+      var sc = wsCalcScore(saved.s);
+      if(sc && (sc.g==='A'||sc.g==='B')) healthyCount++;
+    }
+  });
+
+  // Greeting
+  var hour = new Date().getHours();
+  var greet = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+  var dateStr = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  // Build cards
+  var cardsHtml = '';
+  if(!idx.length){
+    cardsHtml = '<div class="ch-empty">'
+      +'<div class="ch-empty-icon">📁</div>'
+      +'<div class="ch-empty-title">No clients yet</div>'
+      +'<div class="ch-empty-sub">Add your first client workspace to get started. Each client gets their own dashboard, health score, and PDF report.</div>'
+      +'<button class="ch-add" onclick="openWorkspace()">+ Add first client</button>'
+    +'</div>';
+  } else {
+    cardsHtml = idx.slice().reverse().map(function(w){
+      var saved = wsGetClient(w.id);
+      var hasData = saved && saved.s && saved.s.revenue>0;
+      var sc = hasData ? wsCalcScore(saved.s) : null;
+      var ind = hasData ? (INDS[saved.s.industry]||INDS.other) : INDS.other;
+      var emoji = EMOJIS[w.industry]||'📊';
+      var updated = w.updatedAt ? new Date(w.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Never';
+      var cardCls = sc ? sc.cls : 'no-data';
+
+      var metricsHtml = '';
+      if(hasData){
+        var s = saved.s;
+        var gm = s.revenue-(s.cogs+s.labor);
+        var gmP = s.revenue ? gm/s.revenue : 0;
+        var net = gm-s.opex, netP = s.revenue ? net/s.revenue : 0;
+        var runway = s.avgMonthlyBurn>0 ? Math.round((s.currentCash||s.cashOnHand)/s.avgMonthlyBurn) : 0;
+        metricsHtml = '<div class="ch-card-metrics">'
+          +'<div class="ch-metric"><div class="ch-metric-lbl">Revenue</div><div class="ch-metric-val">'+fmt(s.revenue)+'</div></div>'
+          +'<div class="ch-metric"><div class="ch-metric-lbl">Gross margin</div><div class="ch-metric-val '+(gmP>=(ind.gm*.85)?'vg':gmP>=(ind.gm*.6)?'va':'vr')+'">'+pc(gmP)+'</div></div>'
+          +'<div class="ch-metric"><div class="ch-metric-lbl">Net margin</div><div class="ch-metric-val '+(net>=0?'vg':'vr')+'">'+pc(netP)+'</div></div>'
+          +'<div class="ch-metric"><div class="ch-metric-lbl">Runway</div><div class="ch-metric-val '+(runway>=6?'vg':runway>=3?'va':'vr')+'">'+(runway>0?runway+'mo':'—')+'</div></div>'
+        +'</div>';
+      } else {
+        metricsHtml = '<div class="ch-no-data">'
+          +'<div class="ch-no-data-icon">📊</div>'
+          +'<div class="ch-no-data-txt">No P&L data yet.<br>Click to import this client\'s file.</div>'
+        +'</div>';
+      }
+
+      return '<div class="ch-card '+cardCls+'" onclick="wsLoadClient(\''+w.id+'\')">'
+        +'<div class="ch-card-top">'
+          +'<div class="ch-card-name">'+esc(w.name)+'</div>'
+          +'<div class="ch-badge '+(sc?sc.cls:'no-data')+'">'+(sc?sc.g:'＋')+'</div>'
+        +'</div>'
+        +metricsHtml
+        +'<div class="ch-card-footer">'
+          +'<div class="ch-ind"><span>'+emoji+'</span><span>'+esc(ind.l)+'</span></div>'
+          +'<div class="ch-updated">Updated '+updated+'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
+
+  homeEl.innerHTML =
+    // Hero bar
+    '<div class="ch-hero">'
+      +'<div class="ch-hero-left">'
+        +'<div class="ch-greeting">'+greet+',<br><em>here\'s your practice.</em></div>'
+        +'<div class="ch-date">'+dateStr+'</div>'
+      +'</div>'
+      +'<div class="ch-hero-stats">'
+        +'<div class="ch-stat"><div class="ch-stat-val">'+totalClients+'</div><div class="ch-stat-lbl">Clients</div></div>'
+        +'<div class="ch-stat"><div class="ch-stat-val">'+clientsWithData+'</div><div class="ch-stat-lbl">With data</div></div>'
+        +'<div class="ch-stat"><div class="ch-stat-val">'+healthyCount+'</div><div class="ch-stat-lbl">A/B health</div></div>'
+      +'</div>'
+    +'</div>'
+    // Section header
+    +'<div class="ch-sec">'
+      +'<div class="ch-sec-title">Client workspaces — '+totalClients+' total</div>'
+      +'<button class="ch-add" onclick="openWorkspace()">+ Add client</button>'
+    +'</div>'
+    // Cards
+    +'<div class="ch-grid">'+cardsHtml+'</div>';
+
+  homeEl.style.display='block';
+}
 
 // Auto-save active workspace when user imports or loads demo data
 // Patch go() to also save state after render
