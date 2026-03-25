@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFO Vault — CFO In Your Pocket</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f3f0;--surf:#fff;--surf2:#edeae6;
+  --bdr:#ddd9d4;--bdrS:#c4beb8;
+  --txt:#1c1a18;--mut:#5c5954;--sub:#8f8b87;
+  --acc:#2a5c45;--accL:#e6f0eb;--accM:#3a7a5c;
+  --red:#9e2b2b;--redL:#fdf1f1;
+  --amb:#7a4f00;--ambL:#fdf5e6;
+  --grn:#1a5e38;--grnL:#e8f5ee;
+  --blu:#1a3a70;--bluL:#edf2fc;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+  --serif:'Playfair Display',Georgia,serif;
+}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:1.1rem 2.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lmark{font-family:var(--serif);font-size:20px;color:var(--acc);font-weight:600}
+.ltag{font-size:11px;color:var(--sub);letter-spacing:.1em;text-transform:uppercase;margin-right:auto}
+.hbtn{background:var(--surf);border:1px solid var(--bdrS);color:var(--mut);font-size:12px;padding:5px 13px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s;display:none;white-space:nowrap}
+.hbtn:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.hbtn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.hbtn.pri:hover{background:var(--accM)}
+main{max-width:1320px;margin:0 auto;padding:2rem 2.5rem}
+/* ONBOARDING */
+#onboard{margin-bottom:2rem}
+.ob-hero{background:var(--acc);border-radius:16px 16px 0 0;padding:2.5rem 3rem}
+.ob-headline{font-family:var(--serif);font-size:32px;color:#fff;font-weight:600;line-height:1.2;margin-bottom:.6rem}
+.ob-headline em{color:#86efac;font-style:italic}
+.ob-sub{color:rgba(255,255,255,.75);font-size:14px;max-width:560px;line-height:1.65}
+.ob-body{background:var(--surf);border:1px solid var(--bdr);border-top:none;border-radius:0 0 16px 16px;padding:1.5rem 2rem}
+.ob-ind-label{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.85rem}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:1.5rem}
+.ind-chip{background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;padding:.6rem .9rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--mut);user-select:none}
+.ind-chip:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.ind-chip.sel{border-color:var(--acc);background:var(--accL);color:var(--acc);font-weight:600}
+.ind-chip .ii{font-size:18px}
+.ob-actions{display:flex;gap:10px;padding-top:1.25rem;border-top:1px solid var(--bdr);align-items:center;flex-wrap:wrap}
+.ob-notice{font-size:12px;color:var(--sub);margin-left:auto}
+/* STATUS */
+#parseStatus{display:none;padding:.8rem 1.1rem;border-radius:8px;font-size:13px;margin-bottom:1.5rem;border:1px solid;line-height:1.6}
+#parseStatus.ok{background:var(--accL);border-color:#b0cfc0;color:var(--acc)}
+#parseStatus.err{background:var(--redL);border-color:#e8b0b0;color:var(--red)}
+#parseStatus.warn{background:var(--ambL);border-color:#e8d098;color:var(--amb)}
+/* BTN */
+.btn{background:var(--surf);border:1.5px solid var(--bdrS);color:var(--txt);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;transition:all .15s}
+.btn:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.btnP{background:var(--acc);border-color:var(--acc);color:#fff}
+.btnP:hover{background:var(--accM)}
+/* SECTION */
+.sec{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);margin-bottom:.85rem;display:flex;align-items:center;gap:8px;font-weight:500}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+/* CARDS */
+.mrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.mrow3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.mrow2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.5rem}
+.mc{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:1rem 1.1rem;position:relative;overflow:hidden}
+.mc.cg{border-color:#aecfbd}.mc.cr{border-color:#e8b0b0}.mc.cw{border-color:#e8d098}.mc.cb{border-color:#a8c0e0}
+.mc.cg::after,.mc.cr::after,.mc.cw::after,.mc.cb::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mc.cg::after{background:var(--acc)}.mc.cr::after{background:var(--red)}.mc.cw::after{background:var(--amb)}.mc.cb::after{background:var(--blu)}
+.ml{font-size:10px;color:var(--sub);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;font-weight:500}
+.mv{font-family:var(--mono);font-size:20px;font-weight:500;line-height:1.1}
+.mv.vg{color:var(--acc)}.mv.vr{color:var(--red)}.mv.va{color:var(--amb)}.mv.vb{color:var(--blu)}
+.ms{font-size:11px;color:var(--sub);margin-top:3px}
+/* SCORE */
+.score-ring{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:26px;font-weight:600;border:3px solid;flex-shrink:0}
+.sA{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.sB{border-color:var(--blu);color:var(--blu);background:var(--bluL)}
+.sC{border-color:var(--amb);color:var(--amb);background:var(--ambL)}
+.sD{border-color:var(--red);color:var(--red);background:var(--redL)}
+/* PANEL */
+.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:1.4rem;margin-bottom:1.5rem}
+.ptitle{font-family:var(--serif);font-size:16px;margin-bottom:.2rem;font-weight:500}
+.psub{font-size:12px;color:var(--mut);margin-bottom:1rem}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.tcol{display:grid;grid-template-columns:320px 1fr;gap:18px}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);padding:5px 8px;border-bottom:1px solid var(--bdr);text-align:left;font-weight:500}
+td{padding:6px 8px;border-bottom:1px solid var(--bdr);color:var(--txt)}
+tr:last-child td{border-bottom:none}
+.tm{font-family:var(--mono);font-size:12px}.tr{text-align:right}.tmu{color:var(--mut);font-size:12px}
+.ttot td{border-top:1.5px solid var(--bdrS);font-weight:500;border-bottom:none}
+.vg{color:var(--acc)}.vr{color:var(--red)}.va{color:var(--amb)}.vb{color:var(--blu)}
+/* INPUTS */
+.ig{margin-bottom:.9rem}
+.ig label{display:block;font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-weight:500}
+.ig input,.ig select,.ig textarea{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none;transition:border-color .15s}
+.ig input:focus,.ig select:focus,.ig textarea:focus{border-color:var(--acc)}
+.ig input[type=text],.ig select,.ig textarea{font-family:var(--sans)}
+.igrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* SLIDER */
+.sg{margin-bottom:1rem}
+.sh{display:flex;justify-content:space-between;margin-bottom:4px}
+.sl{font-size:12px;color:var(--mut)}
+.sv{font-family:var(--mono);font-size:12px;color:var(--acc);font-weight:500;background:var(--accL);padding:1px 6px;border-radius:4px}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;background:var(--bdr);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--acc);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+/* BENCH */
+.bbar{height:8px;border-radius:4px;background:var(--bdr);position:relative;margin-top:5px;margin-bottom:14px}
+.bfill{height:100%;border-radius:4px;transition:width .4s}
+.btgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--acc);border-radius:1px;opacity:.8}
+/* INSIGHTS */
+.ibox{border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.5rem}
+.ibox.good{background:var(--accL);border:1px solid #aecfbd}
+.ibox.warn{background:var(--ambL);border:1px solid #e8d098}
+.ibox.bad{background:var(--redL);border:1px solid #e8b0b0}
+.irow{display:flex;gap:9px;font-size:13px;margin-bottom:.5rem;line-height:1.5}
+.irow:last-child{margin-bottom:0}
+.idot{width:5px;height:5px;border-radius:50%;margin-top:7px;flex-shrink:0}
+.good .idot{background:var(--acc)}.warn .idot{background:var(--amb)}.bad .idot{background:var(--red)}
+/* AI */
+.ai-box{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:1.4rem;margin-bottom:1.5rem}
+.ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ai-left{display:flex;align-items:center;gap:10px}
+.ai-icon{width:32px;height:32px;background:var(--accL);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ai-title{font-family:var(--serif);font-size:16px;font-weight:500}
+.ai-sub{font-size:12px;color:var(--mut)}
+.ai-btn{background:var(--acc);border:none;color:#fff;padding:7px 16px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500}
+.ai-btn:hover{background:var(--accM)}.ai-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-out{display:none;margin-top:1rem;border-top:1px solid var(--bdr);padding-top:1rem}
+.ai-out.show{display:block}
+.ai-sec{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:.85rem 1rem;margin-bottom:.75rem}
+.ai-sec:last-child{margin-bottom:0}
+.ai-sec-lbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.09em;font-weight:500;margin-bottom:.4rem}
+.ai-sec-body{font-size:13px;line-height:1.7;color:var(--txt)}
+.ai-sec-body strong{color:var(--acc);font-weight:500}
+.ai-sec-body p{margin-bottom:.35rem}.ai-sec-body p:last-child{margin-bottom:0}
+.ai-sec-body ul{margin:.3rem 0 0 1rem}.ai-sec-body li{margin-bottom:.2rem}
+.ai-load{display:none;align-items:center;gap:8px;margin-top:1rem;border-top:1px solid var(--bdr);padding-top:1rem;font-size:13px;color:var(--mut)}
+.ai-load.show{display:flex}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:bl 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.2}40%{opacity:1}}
+/* TOOL NAV */
+.tnav-wrap{display:flex;gap:4px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:4px;margin-bottom:1.5rem;flex-wrap:wrap}
+.tb{flex:1;min-width:100px;padding:7px 8px;border:1.5px solid transparent;background:transparent;color:var(--mut);font-family:var(--sans);font-size:12px;font-weight:500;border-radius:9px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tb .ti{font-size:16px}
+.tb.on{background:var(--surf);color:var(--acc);border-color:var(--acc)}
+.tb:hover:not(.on){background:var(--accL);color:var(--acc)}
+.tp{display:none}.tp.on{display:block}
+/* MISC */
+.addbtn{background:var(--surf2);border:1px solid var(--bdrS);color:var(--mut);border-radius:7px;padding:4px 11px;cursor:pointer;font-size:12px;font-weight:500;display:inline-block;transition:all .15s;margin-top:4px}
+.addbtn:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.rmbtn{background:var(--redL);border:1px solid #e8b0b0;color:var(--red);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rev-box{background:var(--surf2);border-radius:10px;padding:1rem 1.2rem;margin-top:.75rem}
+.rev-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--acc);margin-top:.4rem}
+.rev-sub{font-size:11px;color:var(--mut);margin-top:2px}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:500;margin-left:3px}
+.tag-top{background:#f0e8fc;color:#5a2e8a}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--acc);color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.cw{position:relative;width:100%}
+hr{border:none;border-top:1px solid var(--bdr);margin:1.25rem 0}
+#content{display:none}#content.on{display:block}
+footer{text-align:center;padding:1.75rem;border-top:1px solid var(--bdr);color:var(--sub);font-size:12px;margin-top:2rem;background:var(--surf)}
+footer strong{color:var(--acc)}
+@media(max-width:900px){.twocol,.tcol,.mrow,.mrow4,.mrow3,.mrow2,.ind-grid{grid-template-columns:1fr}main{padding:1.25rem}header{padding:1rem}}
+@media print{.hbtn,.tnav-wrap,.ob-actions,.ai-btn,.addbtn,.rmbtn,.toast{display:none!important}body{background:#fff}}
+
+/* ── WORKSPACE SIDEBAR ── */
+#wsOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200}
+#wsOverlay.on{display:block}
+#wsSidebar{position:fixed;top:0;left:0;bottom:0;width:300px;background:var(--surf);border-right:1px solid var(--bdr);z-index:201;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease}
+#wsSidebar.on{transform:translateX(0)}
+.ws-head{padding:1.1rem 1.25rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.ws-title{font-family:var(--serif);font-size:16px;font-weight:500;color:var(--txt)}
+.ws-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--sub);line-height:1;padding:2px 6px;border-radius:5px}
+.ws-close:hover{background:var(--surf2);color:var(--txt)}
+.ws-new{margin:1rem 1.25rem .5rem;display:flex;gap:7px}
+.ws-new input{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;font-family:var(--sans);font-size:13px;color:var(--txt);outline:none}
+.ws-new input:focus{border-color:var(--acc)}
+.ws-new button{background:var(--acc);border:none;color:#fff;border-radius:7px;padding:7px 13px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500;white-space:nowrap}
+.ws-new button:hover{background:var(--accM)}
+.ws-list{flex:1;overflow-y:auto;padding:.5rem .75rem 1rem}
+.ws-item{display:flex;align-items:center;gap:8px;padding:.65rem .75rem;border-radius:9px;cursor:pointer;border:1.5px solid transparent;margin-bottom:4px;transition:all .12s}
+.ws-item:hover{background:var(--surf2)}
+.ws-item.active{background:var(--accL);border-color:var(--acc)}
+.ws-item-icon{width:34px;height:34px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ws-item.active .ws-item-icon{background:var(--acc);color:#fff}
+.ws-item-body{flex:1;min-width:0}
+.ws-item-name{font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-item.active .ws-item-name{color:var(--acc)}
+.ws-item-meta{font-size:11px;color:var(--sub);margin-top:1px}
+.ws-item-del{background:none;border:none;color:var(--sub);font-size:14px;padding:3px 6px;border-radius:5px;cursor:pointer;opacity:0;transition:opacity .12s;flex-shrink:0}
+.ws-item:hover .ws-item-del{opacity:1}
+.ws-item-del:hover{background:var(--redL);color:var(--red)}
+.ws-empty{padding:2rem 1.25rem;text-align:center;color:var(--sub);font-size:13px;line-height:1.6}
+.ws-footer{padding:.85rem 1.25rem;border-top:1px solid var(--bdr);font-size:11px;color:var(--sub);line-height:1.5}
+/* active client badge in header */
+#activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- WORKSPACE SIDEBAR -->
+<div id="wsOverlay" onclick="closeWorkspace()"></div>
+<div id="wsSidebar">
+  <div class="ws-head">
+    <span class="ws-title">Client workspaces</span>
+    <button class="ws-close" onclick="closeWorkspace()">&#x2715;</button>
+  </div>
+  <div class="ws-new">
+    <input type="text" id="wsNewName" placeholder="New client name..." maxlength="60" onkeydown="if(event.key==='Enter')addWorkspace()">
+    <button onclick="addWorkspace()">Add</button>
+  </div>
+  <div class="ws-list" id="wsList"></div>
+  <div class="ws-footer">Data stays in your browser. Export a client's data to back it up.</div>
+</div>
+
+<header>
+  <span class="lmark">CFO Vault</span>
+  <span class="ltag">CFO In Your Pocket</span>
+  <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
+  <div id="activeClientBadge"></div>
+  <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
+  <button class="hbtn" id="btnExport" onclick="exportData()">&#x1F4E4; Export data</button>
+  <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()">&#x1F4E5; Load saved</button>
+  <button class="hbtn pri" id="btnPDF" onclick="exportPDF()">&#x2B07; Export PDF</button>
+  <button class="hbtn" id="btnReset" onclick="resetApp()">&#x21A9; Start over</button>
+</header>
+<input type="file" id="xlFi" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="jFi" accept=".json" style="display:none">
+<main>
+
+<!-- ONBOARD -->
+<div id="onboard">
+  <div class="ob-hero">
+    <div class="ob-headline">Your finances,<br><em>finally explained.</em></div>
+    <div class="ob-sub">Import your P&amp;L and instantly get a health score, cash flow forecast, break-even analysis, pricing insights, labor breakdown, tax estimate, and runway — all auto-populated from your file. No CFO required.</div>
+  </div>
+  <div class="ob-body">
+    <div class="ob-ind-label">Select your industry</div>
+    <div class="ind-grid" id="indGrid"></div>
+    <div class="ob-actions">
+      <button class="btn btnP" onclick="document.getElementById('xlFi').click()">📊 Import P&amp;L from Excel</button>
+      <button class="btn" onclick="loadDemo()">Try with sample data</button>
+      <button class="btn" onclick="document.getElementById('jFi').click()">📥 Load saved data</button>
+      <span class="ob-notice">Your data never leaves your device</span>
+    </div>
+  </div>
+</div>
+<div id="parseStatus"></div>
+
+<!-- CONTENT -->
+<div id="content">
+  <!-- SNAPSHOT -->
+  <div class="sec" id="snapSec">Snapshot</div>
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:18px;margin-bottom:1.5rem;align-items:start">
+    <div class="panel" style="text-align:center;min-width:148px;margin-bottom:0">
+      <div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Health score</div>
+      <div id="scoreRing" style="display:flex;justify-content:center;margin-bottom:.65rem"></div>
+      <div id="scoreLabel" style="font-size:12px;color:var(--mut);line-height:1.4"></div>
+    </div>
+    <div>
+      <div class="mrow" id="snapCards"></div>
+      <div class="panel" style="margin-bottom:0">
+        <div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Benchmarks — <span id="benchInd"></span></div>
+        <div id="benchmarks"></div>
+      </div>
+    </div>
+  </div>
+  <!-- AI -->
+  <div class="ai-box">
+    <div class="ai-head">
+      <div class="ai-left">
+        <div class="ai-icon">✦</div>
+        <div><div class="ai-title">AI financial advisor</div><div class="ai-sub" id="aiSub">Plain-language analysis with prioritized action items</div></div>
+      </div>
+      <button class="ai-btn" id="aiBtn" onclick="runAI()">Analyze with AI</button>
+    </div>
+    <div class="ai-load" id="aiLoad"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Analyzing your financials...</span></div>
+    <div class="ai-out" id="aiOut"></div>
+  </div>
+  <!-- INSIGHTS -->
+  <div class="sec">Financial insights</div>
+  <div id="insightBox" class="ibox good" style="margin-bottom:1.5rem"></div>
+  <!-- TOOL NAV -->
+  <div class="tnav-wrap" id="toolNav"></div>
+  <div id="toolPanels"></div>
+</div>
+
+</main>
+<footer>Built for small business owners by <strong>CFO Vault</strong> — Financial clarity without the CFO price tag</footer>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const INDS = {
+  restaurant:   {l:'Restaurant / Food',    i:'🍽️', gm:.65,net:.07,lb:.32,op:.18,tR:'Revenue',         tC:'Food & Bev Cost',   tL:'Labor',          tO:'Overhead'},
+  retail:       {l:'Retail Store',         i:'🛍️', gm:.48,net:.06,lb:.15,op:.20,tR:'Revenue',         tC:'Cost of Goods',     tL:'Payroll',        tO:'Operating Expenses'},
+  agency:       {l:'Agency / Consulting',  i:'💼', gm:.55,net:.18,lb:.45,op:.18,tR:'Billings',        tC:'Delivery Cost',     tL:'Team Salaries',  tO:'Overhead'},
+  saas:         {l:'SaaS / Software',      i:'💻', gm:.78,net:.20,lb:.30,op:.25,tR:'ARR / MRR',       tC:'Infrastructure',    tL:'Engineering',    tO:'Sales & Marketing'},
+  healthcare:   {l:'Healthcare Practice',  i:'🏥', gm:.45,net:.15,lb:.40,op:.18,tR:'Patient Revenue', tC:'Medical Supplies',  tL:'Clinical Staff', tO:'Admin Overhead'},
+  construction: {l:'Construction / Trades',i:'🏗️', gm:.22,net:.06,lb:.35,op:.15,tR:'Contract Revenue',tC:'Materials & Subs',  tL:'Field Labor',    tO:'Equipment & OH'},
+  realestate:   {l:'Real Estate Services', i:'🏠', gm:.80,net:.30,lb:.20,op:.15,tR:'Commission Rev',  tC:'Transaction Costs', tL:'Agent Splits',   tO:'Marketing & OH'},
+  manufacturing:{l:'Manufacturing',        i:'🏭', gm:.32,net:.08,lb:.28,op:.18,tR:'Net Sales',       tC:'Cost of Goods Made',tL:'Direct Labor',   tO:'SG&A'},
+  fitness:      {l:'Fitness / Wellness',   i:'💪', gm:.58,net:.15,lb:.35,op:.18,tR:'Membership Rev',  tC:'Program Costs',     tL:'Instructor Cost',tO:'Facility & Admin'},
+  logistics:    {l:'Logistics / Transport',i:'🚛', gm:.25,net:.06,lb:.40,op:.15,tR:'Freight Revenue', tC:'Fuel & Maintenance', tL:'Driver Labor',  tO:'Admin & OH'},
+  law:          {l:'Law Firm',             i:'⚖️', gm:.60,net:.28,lb:.45,op:.18,tR:'Billings',        tC:'Cost of Services',  tL:'Staff Salaries', tO:'Overhead'},
+  msp:          {l:'IT Managed Services',  i:'🖥️', gm:.33,net:.12,lb:.35,op:.18,tR:'Contract Revenue',tC:'MSP & Contractor',  tL:'Staff Salaries', tO:'Overhead / OPEX'},
+  other:        {l:'Other Business',       i:'📊', gm:.40,net:.10,lb:.30,op:.18,tR:'Revenue',         tC:'Cost of Goods',     tL:'Labor',          tO:'Operating Expenses'}
+};
+
+// ── STATE ─────────────────────────────────────────────────────────
+let IND = INDS.other;
+let AT = 'overview'; // active tool
+let Charts = {};
+let PT = []; // pricing tiers
+
+let S = {
+  bizName:'', industry:'other', period:'', notes:'',
+  revenue:0, cogs:0, labor:0, opex:0,
+  staff:[], msp:[],
+  targetMargin:35, costPerUnit:0, competitorPrice:0,
+  fixedCosts:0, variableCostPct:0, pricePerUnit:0,
+  cashOnHand:0, currentCash:0, avgMonthlyBurn:0,
+  filingStatus:'single', stateRate:5, otherIncome:0, ytdTaxPaid:0,
+  cfMonths:[]
+};
+
+// ── UTILS ─────────────────────────────────────────────────────────
+const fmt  = n => '$' + Math.round(Math.abs(n||0)).toLocaleString();
+const pc   = n => ((n||0)*100).toFixed(1)+'%';
+const esc  = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const $    = id => document.getElementById(id);
+const gSal = () => S.staff.reduce((a,s)=>a+(s.total||0),0);
+const gMsp = () => S.msp.reduce((a,m)=>a+(m.ann||0),0);
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ── INDUSTRY CHIPS ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  var g = $('indGrid');
+  Object.entries(INDS).forEach(function(entry){
+    var key = entry[0], ind = entry[1];
+    var chip = document.createElement('div');
+    chip.className = 'ind-chip';
+    chip.innerHTML = '<span class="ii">'+ind.i+'</span><span>'+ind.l+'</span>';
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.ind-chip').forEach(function(c){c.classList.remove('sel');});
+      chip.classList.add('sel');
+      IND = ind; IND.key = key;
+      S.industry = key;
+      S.targetMargin = Math.round(ind.gm*100);
+    });
+    g.appendChild(chip);
+  });
+  $('xlFi').addEventListener('change', function(e){
+    if(e.target.files[0]){ parseXL(e.target.files[0]); e.target.value=''; }
+  });
+  $('jFi').addEventListener('change', handleJSON);
+});
+
+// ── EXCEL PARSER ──────────────────────────────────────────────────
+function parseXL(file){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var wb = XLSX.read(e.target.result, {type:'array'});
+      var msgs = [];
+      var isN = function(v){ return typeof v==='number' && isFinite(v) && v!==0; };
+      var pv  = function(v){
+        if(isN(v)) return v;
+        if(typeof v==='string'){
+          var s=v.replace(/[$, ]/g,'');
+          if(/^\([\d.]+\)$/.test(s)) return -parseFloat(s.slice(1,-1));
+          return parseFloat(s)||0;
+        }
+        return 0;
+      };
+      var cl = function(v){ return v==null?'':String(v).trim(); };
+      var lc = function(v){ return cl(v).toLowerCase().replace(/[^a-z0-9 &\/]/g,' ').replace(/ +/g,' ').trim(); };
+      var has= function(lbl,kws){ var l=lc(lbl); return kws.some(function(k){return l.indexOf(k)>=0;}); };
+      var isTot = function(lbl){ var l=lc(lbl); return l.indexOf('total')>=0||l.indexOf('subtotal')>=0; };
+      var isPct = function(v){ return typeof v==='number' && Math.abs(v)>0 && Math.abs(v)<2 && !Number.isInteger(v); };
+
+      var KW = {
+        revenue:['total revenue','gross revenue','net revenue','total sales','gross sales','net sales',
+                 'total income','operating revenue','gross income','total billings',
+                 'revenue','income','billings','sales','patient revenue','net patient revenue',
+                 'contract revenue','membership revenue','commission revenue','service revenue'],
+        cogs:   ['total medical','total cost of','total cogs','total direct','total supplies',
+                 'cost of goods','cost of sales','cogs','direct cost','cost of services',
+                 'cost of revenue','food cost','medical supplies','materials','msp cost',
+                 'contractor cost','delivery cost','program cost','direct expenses'],
+        labor:  ['total labor','total labour','total payroll','total salaries','total wages',
+                 'total personnel','total staff','total compensation','labor & personnel',
+                 'salaries & wages','salary & wages','salaries and wages',
+                 'labor cost','payroll cost','staff cost','employee cost',
+                 'clinical staff','direct labor','team salaries',
+                 'labor','labour','payroll','salaries','wages','personnel'],
+        opex:   ['total opex','total overhead','total operating expenses','total operating',
+                 'total expenses','total g&a','total indirect','total fixed',
+                 'opex','overhead','operating expenses','sg&a','general & admin',
+                 'general and admin','administrative expenses','admin expense',
+                 'indirect costs','facilities','occupancy','depreciation',
+                 'utilities','insurance','rent','marketing expense','other expenses'],
+        gp:     ['gross profit','total gross profit'],
+        ni:     ['net income','net profit','net loss','net earnings','operating income'],
+        cash:   ['cash on hand','cash balance','bank balance','beginning cash','total cash'],
+        burn:   ['monthly burn','burn rate','total monthly expenses','monthly expenses'],
+        fixed:  ['fixed costs','fixed expenses','monthly fixed']
+      };
+
+      // Convert all sheets to arrays
+      var sheets = {};
+      wb.SheetNames.forEach(function(n){
+        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});
+      });
+      var first = sheets[wb.SheetNames[0].toLowerCase().trim()];
+      var findSh = function(){
+        var args = Array.from(arguments);
+        var k = Object.keys(sheets).find(function(k){ return args.some(function(w){return k.indexOf(w)>=0;}); });
+        return k ? sheets[k] : null;
+      };
+
+      var plSh  = findSh('p&l','pl ','income','profit','loss','annual') || first;
+      var sumSh = findSh('summary','report','overview') || plSh;
+      var salSh = findSh('salar','payroll','staff','personnel','employee','hr','people','team');
+      var mspSh = findSh('msp','contractor','vendor','managed','resource');
+
+      // Detect annual column (column after month headers)
+      function findAnnCol(data){
+        var MO = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+        for(var ri=0;ri<Math.min(data.length,12);ri++){
+          var row=data[ri]; if(!row) continue;
+          var moCount=row.filter(function(v){return MO.indexOf(lc(cl(v)))>=0;}).length;
+          if(moCount>=6){
+            var lastMo=-1;
+            row.forEach(function(v,ci){if(MO.indexOf(lc(cl(v)))>=0)lastMo=ci;});
+            var annCol=lastMo+1;
+            for(var ci=lastMo+1;ci<row.length;ci++){
+              var h=lc(cl(row[ci]));
+              if(h.indexOf('total')>=0||h.indexOf('annual')>=0||h.indexOf('ytd')>=0){annCol=ci;break;}
+            }
+            return annCol;
+          }
+        }
+        return -1;
+      }
+
+      // Scan a sheet, return best candidates per field
+      function scanSheet(data){
+        if(!data||!data.length) return {};
+        var annCol = findAnnCol(data);
+        var MO = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+        var cands = {};
+        data.forEach(function(row,ri){
+          if(!row||!row.length) return;
+          var lbl='',lblCol=-1;
+          for(var ci=0;ci<Math.min(5,row.length);ci++){
+            var v=cl(row[ci]);
+            if(v&&v.length>1&&!/^\d+$/.test(v)&&!/^[\$\.\,\-\(\)%]+$/.test(v)){lbl=v;lblCol=ci;break;}
+          }
+          if(!lbl) return;
+          var nums=[];
+          for(var ci=lblCol+1;ci<row.length;ci++){
+            var v=pv(row[ci]);
+            if(Math.abs(v)>0&&!isPct(row[ci])) nums.push({v:v,ci:ci});
+          }
+          if(!nums.length) return;
+          var best=0, moArr=null;
+          var moNums=nums.filter(function(n){return annCol<0||n.ci<annCol;});
+          var annNum=annCol>=0?nums.find(function(n){return n.ci===annCol;}):null;
+          if(annNum){
+            best=annNum.v;
+            if(moNums.length>=3) moArr=moNums.slice(0,12).map(function(n){return n.v;});
+          } else if(nums.length>=10){
+            var s12=nums.slice(0,12).reduce(function(a,n){return a+n.v;},0);
+            var last=nums[nums.length-1].v;
+            best=Math.abs(last-s12)/Math.max(Math.abs(s12),1)<0.06?last:s12;
+            moArr=nums.slice(0,12).map(function(n){return n.v;});
+          } else if(nums.length>=2){
+            best=nums.reduce(function(a,n){return Math.abs(n.v)>Math.abs(a)?n.v:a;},nums[0].v);
+          } else { best=nums[0].v; }
+          var score=(isTot(lbl)?10:0)+(annNum?1:0);
+          for(var field in KW){
+            if(has(lbl,KW[field])){
+              if(!cands[field]) cands[field]=[];
+              cands[field].push({val:Math.abs(best),raw:best,moArr:moArr,lbl:lbl,score:score});
+              break;
+            }
+          }
+        });
+        // Pick best per field
+        var res={};
+        for(var f in cands){
+          cands[f].sort(function(a,b){return b.score-a.score||b.val-a.val;});
+          res[f]=cands[f][0];
+        }
+        return res;
+      }
+
+      // Scan all relevant sheets and merge
+      var d1=scanSheet(first);
+      var d2=scanSheet(plSh);
+      var d3=scanSheet(sumSh);
+      var merged={};
+      [d1,d2,d3].forEach(function(d){
+        Object.entries(d).forEach(function(e){
+          var k=e[0],v=e[1];
+          if(!merged[k]||v.score>merged[k].score||(v.score===merged[k].score&&v.val>merged[k].val))
+            merged[k]=v;
+        });
+      });
+
+      // Populate S
+      if(merged.revenue) S.revenue=Math.round(merged.revenue.val);
+      if(merged.cogs)    S.cogs   =Math.round(merged.cogs.val);
+      if(merged.labor)   S.labor  =Math.round(merged.labor.val);
+      if(merged.opex)    S.opex   =Math.round(merged.opex.val);
+      // Fallbacks
+      if(!S.cogs&&S.revenue&&merged.gp) S.cogs=Math.round(S.revenue-merged.gp.val);
+      if(!S.opex&&merged.gp&&merged.ni) S.opex=Math.round(merged.gp.val-S.cogs-S.labor-merged.ni.val);
+      if(merged.cash) S.cashOnHand=Math.round(merged.cash.val);
+      if(merged.burn) S.avgMonthlyBurn=Math.round(merged.burn.val);
+      if(merged.fixed) S.fixedCosts=Math.round(merged.fixed.val);
+      // Derive if not found
+      if(!S.cashOnHand&&S.revenue) S.cashOnHand=Math.round(S.revenue*.08);
+      if(!S.currentCash) S.currentCash=S.cashOnHand;
+      if(!S.fixedCosts&&S.opex) S.fixedCosts=Math.round(S.opex/12*.7);
+      if(!S.variableCostPct&&S.cogs&&S.revenue) S.variableCostPct=Math.round(S.cogs/S.revenue*100*.45);
+      if(!S.avgMonthlyBurn&&S.opex) S.avgMonthlyBurn=Math.round((S.opex+S.cogs+S.labor)/12);
+      if(!S.costPerUnit&&S.cogs) S.costPerUnit=Math.round((S.cogs+S.labor)/12);
+      if(!S.pricePerUnit&&S.revenue) S.pricePerUnit=Math.round(S.revenue/12);
+      if(!S.targetMargin) S.targetMargin=Math.round(IND.gm*100);
+      // Monthly data + automatic period detection
+      var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      if(merged.revenue&&merged.revenue.moArr&&merged.revenue.moArr.length>=1){
+        var rMo=merged.revenue.moArr;
+        var cMo=merged.cogs&&merged.cogs.moArr||[];
+        var lMo=merged.labor&&merged.labor.moArr||[];
+        var oMo=merged.opex&&merged.opex.moArr||[];
+
+        // Count how many months actually have non-zero revenue
+        var actualMonths=rMo.filter(function(v){return Math.abs(v)>100;}).length;
+        if(actualMonths===0) actualMonths=rMo.length;
+
+        // Build monthly records for only the months that exist
+        S.cfMonths=rMo.slice(0,actualMonths).map(function(r,i){
+          var exp=Math.abs((cMo[i]||0)+(lMo[i]||0)+(oMo[i]||0));
+          if(!exp) exp=Math.round((S.cogs+S.labor+S.opex)/actualMonths);
+          return{month:MO[i]||'Mo'+(i+1),revenue:Math.round(Math.abs(r)),expenses:Math.round(exp)};
+        });
+
+        // Detect if the stored totals are the raw partial period (not already annualized)
+        // Key check: if sum of monthly revenue closely matches stored S.revenue,
+        // then the file did NOT have a separate annual total col — it's a partial year
+        var moSum=rMo.slice(0,actualMonths).reduce(function(a,v){return a+Math.abs(v);},0);
+        var hasAnnualCol=merged.revenue.score>0; // scored higher = had annual col
+        var looksPartial=actualMonths<12&&Math.abs(moSum-S.revenue)/Math.max(S.revenue,1)<0.08;
+
+        if(looksPartial&&!hasAnnualCol){
+          // File has N months of data - annualize everything for benchmarks
+          var ratio=12/actualMonths;
+          S.rawRevenue=Math.round(S.revenue);
+          S.rawCogs   =Math.round(S.cogs);
+          S.rawLabor  =Math.round(S.labor);
+          S.rawOpex   =Math.round(S.opex);
+          S.periodMonths=actualMonths;
+          // Annualized values used for all benchmark/health score calculations
+          S.revenue=Math.round(S.revenue*ratio);
+          S.cogs   =Math.round(S.cogs*ratio);
+          S.labor  =Math.round(S.labor*ratio);
+          S.opex   =Math.round(S.opex*ratio);
+        } else if(actualMonths<12&&hasAnnualCol){
+          // File had monthly columns AND an annual total — annual total is already correct
+          // but note how many months were active
+          S.periodMonths=actualMonths;
+          S.rawRevenue=0; // no need to show raw — annual col is the real figure
+        } else {
+          S.periodMonths=12;
+          S.rawRevenue=0;
+        }
+
+        // Re-derive dependent fields from (now correct) annualized figures
+        if(!S.avgMonthlyBurn||S.avgMonthlyBurn<100)
+          S.avgMonthlyBurn=Math.round((S.cogs+S.labor+S.opex)/12);
+        if(!S.cashOnHand) S.cashOnHand=Math.round(S.revenue*.08);
+        if(!S.currentCash) S.currentCash=S.cashOnHand;
+        if(!S.fixedCosts) S.fixedCosts=Math.round(S.opex/12*.7);
+        if(!S.variableCostPct) S.variableCostPct=Math.round(S.cogs/Math.max(S.revenue,1)*100*.45);
+      }
+
+      // Staff parser
+      function parseStaff(data){
+        if(!data) return false;
+        for(var ri=0;ri<Math.min(data.length,15);ri++){
+          var row=data[ri]; if(!row) continue;
+          var nci=row.findIndex(function(c){var s=lc(cl(c));return s==='name'||s==='employee name'||s==='employee'||s==='staff name'||(s.indexOf('name')>=0&&s.length<=20);});
+          if(nci<0) continue;
+          var bci=-1,tci=-1;
+          row.forEach(function(c,ci){
+            var s=lc(cl(c));
+            if(['base','base salary','annual salary','salary'].indexOf(s)>=0&&bci<0) bci=ci;
+            if(['total','total comp','total compensation','annual','total annual'].indexOf(s)>=0&&tci<0) tci=ci;
+          });
+          var ppl=[];
+          for(var ri2=ri+1;ri2<data.length;ri2++){
+            var r=data[ri2]; if(!r) continue;
+            var nm=cl(r[nci]); if(!nm||nm.length<2) continue;
+            if(['total','subtotal','grand total','nan'].indexOf(nm.toLowerCase())>=0) continue;
+            var base=bci>=0?Math.abs(pv(r[bci])):0;
+            var tot=tci>=0?Math.abs(pv(r[tci])):0;
+            var best=tot||base; if(best<500) continue;
+            ppl.push({name:nm,base:Math.round(base||best*.85),total:Math.round(best)});
+          }
+          if(ppl.length>0){S.staff=ppl;return true;}
+        }
+        return false;
+      }
+      parseStaff(salSh)||parseStaff(plSh)||parseStaff(first);
+
+      // MSP parser
+      function parseMSP(data){
+        if(!data) return false;
+        for(var ri=0;ri<Math.min(data.length,15);ri++){
+          var row=data[ri]; if(!row) continue;
+          var nci=row.findIndex(function(c){var s=lc(cl(c));return['contractor','vendor','resource','company','provider','name'].indexOf(s)>=0||(s.indexOf('name')>=0&&s.length<25);});
+          if(nci<0) continue;
+          var hci=-1,rci=-1,aci=-1;
+          row.forEach(function(c,ci){
+            var s=lc(cl(c));
+            if((s.indexOf('hour')>=0||s==='hrs')&&hci<0) hci=ci;
+            if(s.indexOf('rate')>=0&&rci<0) rci=ci;
+            if((s.indexOf('annual')>=0||s.indexOf('total')>=0)&&aci<0) aci=ci;
+          });
+          var items=[];
+          for(var ri2=ri+1;ri2<data.length;ri2++){
+            var r=data[ri2]; if(!r) continue;
+            var nm=cl(r[nci]); if(!nm||nm.length<2) continue;
+            if(['total','grand total','subtotal','nan'].indexOf(nm.toLowerCase())>=0) continue;
+            var hrs=hci>=0?Math.abs(pv(r[hci])):0;
+            var rate=rci>=0?Math.abs(pv(r[rci])):0;
+            var ann=aci>=0?Math.abs(pv(r[aci])):0;
+            var est=ann||(hrs*rate*12); if(est<100&&hrs===0) continue;
+            items.push({name:nm,hrs:Math.round(hrs*10)/10,rate:Math.round(rate*100)/100,ann:Math.round(est)});
+          }
+          if(items.length>0){S.msp=items.sort(function(a,b){return b.ann-a.ann;});return true;}
+        }
+        return false;
+      }
+      parseMSP(mspSh)||parseMSP(plSh);
+
+      if(!S.bizName) S.bizName=file.name.replace(/\.(xlsx|xls|csv)$/i,'').replace(/[_-]+/g,' ');
+      var found=[];
+      if(S.revenue>0) found.push('revenue '+fmt(S.revenue));
+      if(S.cogs>0)    found.push('COGS '+fmt(S.cogs));
+      if(S.labor>0)   found.push('labor '+fmt(S.labor));
+      if(S.opex>0)    found.push('OPEX '+fmt(S.opex));
+      if(found.length===0){
+        showStatus('err','No financial data found. Check that your file has rows labeled Revenue, Cost of Goods, Labor/Payroll, and Expenses with numeric values.');
+      } else {
+        var pNote=S.periodMonths&&S.periodMonths<12&&S.rawRevenue>0?' · '+S.periodMonths+'-month file — annualized to '+fmt(S.revenue)+'/yr':'';
+        showStatus('ok','Imported: '+found.join(', ')+(S.staff.length?' · '+S.staff.length+' staff':'')+(S.msp.length?' · '+S.msp.length+' contractors':'')+pNote);
+        if(found.length<3) showStatus('warn','Partial import ('+found.length+' of 4 fields). Some tools will use estimates for missing fields.');
+        $('onboard').style.display='none';
+        go();
+      }
+    } catch(err){
+      showStatus('err','Could not read file: '+err.message);
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showStatus(type, msg){
+  var el=$('parseStatus');
+  el.className=type; el.style.display='block';
+  el.innerHTML='<strong>'+(type==='ok'?'Import successful':type==='warn'?'Partial import':'Import failed')+'</strong><br>'+msg;
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────────────
+function loadDemo(){
+  var demos={
+    healthcare:{bizName:'Greenfield Family Medicine',period:'FY2026',revenue:1760000,cogs:246300,labor:1087960,opex:340000,cashOnHand:142000,fixedCosts:78000,variableCostPct:14,pricePerUnit:185,costPerUnit:95,targetMargin:45,competitorPrice:210,currentCash:142000,avgMonthlyBurn:139021,stateRate:6,otherIncome:0,filingStatus:'married_joint',ytdTaxPaid:0,cfMonths:[{month:'Jan',revenue:142000,expenses:148000},{month:'Feb',revenue:138000,expenses:144000},{month:'Mar',revenue:155000,expenses:152000},{month:'Apr',revenue:148000,expenses:148000},{month:'May',revenue:140000,expenses:144000},{month:'Jun',revenue:132000,expenses:138000}],staff:[{name:'Dr. Sarah Chen',base:195000,total:238000},{name:'Dr. Marcus Webb',base:182000,total:221000},{name:'Dr. Priya Nair',base:178000,total:217000},{name:'Jessica Torres NP',base:98000,total:115000},{name:'Linda Patel (Admin)',base:78000,total:91000}],msp:[{name:'HealthIT Contractors',hrs:40,rate:65,ann:31200},{name:'Billing Services LLC',hrs:20,rate:45,ann:10800}],notes:'Sample healthcare practice data. High labor costs are typical for physician-heavy practices.'},
+    restaurant:{bizName:'Rosewood Kitchen',period:'FY2026',revenue:620000,cogs:198400,labor:201500,opex:92000,cashOnHand:28000,fixedCosts:18000,variableCostPct:32,pricePerUnit:22,costPerUnit:8,targetMargin:62,competitorPrice:26,currentCash:28000,avgMonthlyBurn:38000,stateRate:6,otherIncome:0,filingStatus:'married_joint',ytdTaxPaid:0,cfMonths:[{month:'Jan',revenue:46500,expenses:40200},{month:'Feb',revenue:44200,expenses:39800},{month:'Mar',revenue:52000,expenses:41500},{month:'Apr',revenue:55000,expenses:42100},{month:'May',revenue:58000,expenses:43200},{month:'Jun',revenue:61000,expenses:44000}],staff:[{name:'Head Chef',base:58000,total:68000},{name:'Line Cook x2',base:34000,total:40000},{name:'FOH Manager',base:42000,total:49000}],msp:[],notes:'Sample restaurant — strong summer season.'},
+    msp:{bizName:'Apex IT Solutions',period:'FY2026',revenue:520000,cogs:68000,labor:210000,opex:88000,cashOnHand:65000,fixedCosts:18000,variableCostPct:13,pricePerUnit:8500,costPerUnit:5200,targetMargin:33,competitorPrice:9200,currentCash:65000,avgMonthlyBurn:26500,stateRate:5,otherIncome:0,filingStatus:'single',ytdTaxPaid:0,cfMonths:[{month:'Jan',revenue:42000,expenses:28000},{month:'Feb',revenue:40000,expenses:27500},{month:'Mar',revenue:44000,expenses:28500},{month:'Apr',revenue:45000,expenses:29000},{month:'May',revenue:43000,expenses:28000},{month:'Jun',revenue:44000,expenses:28200}],staff:[{name:'IT Director',base:82000,total:98000},{name:'Systems Admin',base:55000,total:64000},{name:'Help Desk x2',base:38000,total:44000}],msp:[{name:'SyncTech Solutions',hrs:92,rate:65,ann:71760},{name:'NetOps LLC',hrs:38,rate:22,ann:10032}],notes:'Sample MSP account.'},
+    agency:{bizName:'Vantage Creative Agency',period:'FY2026',revenue:890000,cogs:178000,labor:356000,opex:133500,cashOnHand:95000,fixedCosts:22000,variableCostPct:20,pricePerUnit:175,costPerUnit:65,targetMargin:55,competitorPrice:195,currentCash:95000,avgMonthlyBurn:55625,stateRate:7,otherIncome:0,filingStatus:'married_joint',ytdTaxPaid:0,cfMonths:[{month:'Jan',revenue:68000,expenses:55000},{month:'Feb',revenue:72000,expenses:56000},{month:'Mar',revenue:78000,expenses:57000},{month:'Apr',revenue:76000,expenses:56500},{month:'May',revenue:82000,expenses:58000},{month:'Jun',revenue:80000,expenses:57500}],staff:[{name:'Creative Director',base:82000,total:98000},{name:'Senior Designer',base:65000,total:75000},{name:'Copywriter',base:55000,total:63000}],msp:[{name:'Video Contractor',hrs:20,rate:85,ann:20400}],notes:'Sample creative agency.'}
+  };
+  var key = S.industry;
+  var demo = demos[key]||demos.healthcare;
+  Object.assign(S, demo, {industry:S.industry});
+  PT = [];
+  $('onboard').style.display='none';
+  showStatus('ok','Sample data loaded: '+S.bizName+' — replace with your real P&L to get accurate analysis.');
+  go();
+}
+
+
+
+// ── STATE TAX RATES ───────────────────────────────────────────────
+var STATE_TAXES = {
+  'AL':{'name':'Alabama','rate':5.0},
+  'AK':{'name':'Alaska','rate':0},
+  'AZ':{'name':'Arizona','rate':2.5},
+  'AR':{'name':'Arkansas','rate':4.7},
+  'CA':{'name':'California','rate':9.3},
+  'CO':{'name':'Colorado','rate':4.4},
+  'CT':{'name':'Connecticut','rate':6.99},
+  'DE':{'name':'Delaware','rate':6.6},
+  'FL':{'name':'Florida','rate':0},
+  'GA':{'name':'Georgia','rate':5.49},
+  'HI':{'name':'Hawaii','rate':7.9},
+  'ID':{'name':'Idaho','rate':5.8},
+  'IL':{'name':'Illinois','rate':4.95},
+  'IN':{'name':'Indiana','rate':3.05},
+  'IA':{'name':'Iowa','rate':5.7},
+  'KS':{'name':'Kansas','rate':5.7},
+  'KY':{'name':'Kentucky','rate':4.5},
+  'LA':{'name':'Louisiana','rate':4.25},
+  'ME':{'name':'Maine','rate':7.15},
+  'MD':{'name':'Maryland','rate':5.75},
+  'MA':{'name':'Massachusetts','rate':5.0},
+  'MI':{'name':'Michigan','rate':4.25},
+  'MN':{'name':'Minnesota','rate':9.85},
+  'MS':{'name':'Mississippi','rate':5.0},
+  'MO':{'name':'Missouri','rate':4.95},
+  'MT':{'name':'Montana','rate':6.75},
+  'NE':{'name':'Nebraska','rate':6.84},
+  'NV':{'name':'Nevada','rate':0},
+  'NH':{'name':'New Hampshire','rate':0},
+  'NJ':{'name':'New Jersey','rate':10.75},
+  'NM':{'name':'New Mexico','rate':5.9},
+  'NY':{'name':'New York','rate':10.9},
+  'NC':{'name':'North Carolina','rate':4.75},
+  'ND':{'name':'North Dakota','rate':2.5},
+  'OH':{'name':'Ohio','rate':3.99},
+  'OK':{'name':'Oklahoma','rate':4.75},
+  'OR':{'name':'Oregon','rate':9.9},
+  'PA':{'name':'Pennsylvania','rate':3.07},
+  'RI':{'name':'Rhode Island','rate':5.99},
+  'SC':{'name':'South Carolina','rate':6.5},
+  'SD':{'name':'South Dakota','rate':0},
+  'TN':{'name':'Tennessee','rate':0},
+  'TX':{'name':'Texas','rate':0},
+  'UT':{'name':'Utah','rate':4.65},
+  'VT':{'name':'Vermont','rate':8.75},
+  'VA':{'name':'Virginia','rate':5.75},
+  'WA':{'name':'Washington','rate':0},
+  'WV':{'name':'West Virginia','rate':6.5},
+  'WI':{'name':'Wisconsin','rate':7.65},
+  'WY':{'name':'Wyoming','rate':0}
+};
+function stateOptions(sel){
+  return Object.entries(STATE_TAXES).sort(function(a,b){return a[1].name.localeCompare(b[1].name);}).map(function(e){
+    return'<option value="'+e[0]+'" '+(sel===e[0]?'selected':'')+'>'+e[1].name+' ('+(e[1].rate===0?'No income tax':e[1].rate+'%')+')</option>';
+  }).join('');
+}
+
+// ── PERIOD SELECTOR ───────────────────────────────────────────────
+var periodData = {revenue:0,cogs:0,labor:0,opex:0};
+var periodMode = 'total'; // 'total' or 'compare' // holds period-filtered values
+
+function setPeriodMode(mode){
+  periodMode=mode===0?'total':'compare';
+  var mb=$('modeTotal'),mc2=$('modeCompare');
+  if(mb){mb.style.background=mode===0?'var(--acc)':'var(--surf2)';mb.style.borderColor=mode===0?'var(--acc)':'var(--bdrS)';mb.style.color=mode===0?'#fff':'var(--mut)';}
+  if(mc2){mc2.style.background=mode===1?'var(--acc)':'var(--surf2)';mc2.style.borderColor=mode===1?'var(--acc)':'var(--bdrS)';mc2.style.color=mode===1?'#fff':'var(--mut)';}
+  renderOvData();
+}
+
+function switchPeriodRange(){
+  var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var fromEl=$('periodFrom'), toEl=$('periodTo');
+  var from=parseInt(fromEl&&fromEl.value||0);
+  var toRaw=parseInt(toEl&&toEl.value||11);
+  // -1 means single month (no end range)
+  var to=toRaw===-1?from:toRaw;
+  // If to is less than from (and not -1), set to = from
+  if(to<from){ to=from; if(toEl&&toRaw!==-1) toEl.value=from; }
+  var idxs=[];
+  for(var i=from;i<=to;i++) idxs.push(i);
+  var isFullYear=(from===0&&to===11);
+  var isSingle=(toRaw===-1||from===to);
+  var badge=$('periodBadge'), lbl=$('periodLabel');
+  if(isFullYear){
+    periodData={revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex};
+    if(badge) badge.style.display='none';
+    if(lbl) lbl.textContent='Full year';
+  } else {
+    periodData=calcPeriodData(idxs);
+    if(badge) badge.style.display='block';
+    if(lbl) lbl.textContent=isSingle?MO[from]+' only':MO[from]+' – '+MO[to]+' ('+idxs.length+' months)';
+  }
+  renderOvData();
+}
+
+function resetPeriod(){
+  if($('periodFrom')) $('periodFrom').value=0;
+  if($('periodTo')) $('periodTo').value=11;
+  periodData={revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex};
+  var badge=$('periodBadge'), lbl=$('periodLabel');
+  if(badge) badge.style.display='none';
+  if(lbl) lbl.textContent='Full year';
+  renderOvData();
+}
+
+// Keep old switchPeriod as no-op for safety
+function switchPeriod(val){ switchPeriodRange(); }
+
+function calcPeriodData(idxs){
+  // If we have monthly data use it, otherwise prorate annual
+  var months=idxs.length;
+  if(S.cfMonths&&S.cfMonths.length>=Math.max.apply(null,idxs)+1){
+    var rev=0,exp=0;
+    idxs.forEach(function(i){rev+=S.cfMonths[i].revenue||0;exp+=S.cfMonths[i].expenses||0;});
+    var cogsShare=S.cogs?(S.cogs/(S.cogs+S.labor+S.opex)):0.5;
+    var laborShare=S.labor?(S.labor/(S.cogs+S.labor+S.opex)):0.35;
+    var opexShare=S.opex?(S.opex/(S.cogs+S.labor+S.opex)):0.15;
+    return{revenue:Math.round(rev),cogs:Math.round(exp*cogsShare),labor:Math.round(exp*laborShare),opex:Math.round(exp*opexShare)};
+  }
+  var ratio=months/12;
+  return{revenue:Math.round(S.revenue*ratio),cogs:Math.round(S.cogs*ratio),labor:Math.round(S.labor*ratio),opex:Math.round(S.opex*ratio)};
+}
+
+// ── CALCULATIONS ──────────────────────────────────────────────────
+function getAdj(){
+  var c1=+(($('sr1')&&$('sr1').value)||0)/100;
+  var c2=+(($('sr2')&&$('sr2').value)||0)/100;
+  var c3=+(($('sr3')&&$('sr3').value)||0)/100;
+  var c4=+(($('sr4')&&$('sr4').value)||0)/100;
+  // Use period-filtered data if a period is selected
+  var pR=periodData&&periodData.revenue>0?periodData.revenue:S.revenue;
+  var pC=periodData&&periodData.revenue>0?periodData.cogs:S.cogs;
+  var pL=periodData&&periodData.revenue>0?periodData.labor:S.labor;
+  var pO=periodData&&periodData.revenue>0?periodData.opex:S.opex;
+  var aR=pR*(1+c1), aC=pC*(1-c2), aL=pL*(1-c3), aO=pO*(1-c4);
+  var bT=pC+pL, aT=aC+aL;
+  var bGM=pR-bT, aGM=aR-aT;
+  var bGMp=pR?bGM/pR:0, aGMp=aR?aGM/aR:0;
+  var bNet=bGM-pO, aNet=aGM-aO;
+  return{c1,c2,c3,c4,aR,aC,aL,aO,aT,aGM,aGMp,aNet,bT,bGM,bGMp,bNet};
+}
+
+// ── GO ────────────────────────────────────────────────────────────
+function go(){
+  // Make sure IND is set
+  if(!IND||!IND.gm) IND = INDS[S.industry]||INDS.other;
+  IND.key = S.industry;
+  periodData={revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex};
+  $('content').classList.add('on');
+  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(id){$(id).style.display='block';});
+  var pLabel='';
+  if(S.periodMonths&&S.periodMonths<12){
+    pLabel=' · '+S.periodMonths+'-month data (annualized)';
+  } else if(S.period){
+    pLabel=' · '+S.period;
+  }
+  $('snapSec').textContent='Snapshot — '+(S.bizName||IND.l)+pLabel;
+  $('benchInd').textContent=IND.l;
+  buildToolNav();
+  render();
+}
+
+function buildToolNav(){
+  var TOOLS=[
+    {k:'overview', l:'P&L Overview',   i:'📊'},
+    {k:'cashflow', l:'Cash Flow',       i:'💧'},
+    {k:'breakeven',l:'Break-Even',      i:'⚖️'},
+    {k:'pricing',  l:'Pricing',         i:'🏷️'},
+    {k:'labor',    l:'Labor & Staff',   i:'👥'},
+    {k:'tax',      l:'Tax Estimate',    i:'🧾'},
+    {k:'runway',   l:'Runway',          i:'📉'}
+  ];
+  var nav=$('toolNav'); nav.innerHTML='';
+  TOOLS.forEach(function(t){
+    var b=document.createElement('button');
+    b.className='tb'+(t.k===AT?' on':'');
+    b.innerHTML='<span class="ti">'+t.i+'</span><span>'+t.l+'</span>';
+    b.onclick=function(){
+      AT=t.k;
+      document.querySelectorAll('.tb').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      document.querySelectorAll('.tp').forEach(function(x){x.classList.remove('on');});
+      var p=$('tp-'+t.k);if(p)p.classList.add('on');
+      renderTool(t.k);
+    };
+    nav.appendChild(b);
+  });
+  var panels=$('toolPanels'); panels.innerHTML='';
+  TOOLS.forEach(function(t){
+    var d=document.createElement('div');
+    d.className='tp'+(t.k===AT?' on':'');
+    d.id='tp-'+t.k;
+    panels.appendChild(d);
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render(){
+  renderSnap();
+  renderScore();
+  renderBenchmarks();
+  renderInsights();
+  renderTool(AT);
+}
+
+function renderTool(k){
+  switch(k){
+    case 'overview':  renderOverview();  break;
+    case 'cashflow':  renderCashFlow();  break;
+    case 'breakeven': renderBreakEven(); break;
+    case 'pricing':   renderPricing();   break;
+    case 'labor':     renderLabor();     break;
+    case 'tax':       renderTax();       break;
+    case 'runway':    renderRunway();    break;
+  }
+}
+
+// ── SNAPSHOT ──────────────────────────────────────────────────────
+function renderSnap(){
+  var a=getAdj();
+  $('snapCards').innerHTML=
+    mc(a.bGMp>=IND.gm?'cg':a.bGMp<IND.gm*.7?'cr':'cw','Gross margin',pc(a.bGMp),fmt(a.bGM)+'/yr · target '+pc(IND.gm),a.bGMp>=IND.gm?'vg':a.bGMp<IND.gm*.7?'vr':'va')+
+    mc(a.bNet>=0?'cg':'cr','Net margin',pc(S.revenue?a.bNet/S.revenue:0),(a.bNet<0?'-':'')+fmt(a.bNet)+'/yr',a.bNet>=0?'vg':'vr')+
+    mc('cb',IND.tR,fmt(S.revenue),fmt(S.revenue/12)+'/mo','')+
+    mc('cw','COGS + Labor',fmt(a.bT),S.revenue?Math.round(a.bT/S.revenue*100)+'% of revenue':'','va')+
+    mc('','Adjusted GM',pc(a.aGMp),(a.aGMp>=a.bGMp?'+':'')+((a.aGMp-a.bGMp)*100).toFixed(1)+'pp vs current','vg');
+}
+function mc(col,label,val,sub,vc){return'<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+'</div><div class="ms">'+sub+'</div></div>';}
+
+function renderScore(){
+  var a=getAdj(),n=S.revenue?a.bNet/S.revenue:0,lb=S.revenue?S.labor/S.revenue:0,ob=S.revenue?S.opex/S.revenue:0;
+  var p=0;
+  if(a.bGMp>=IND.gm)p+=35;else if(a.bGMp>=IND.gm*.75)p+=22;else if(a.bGMp>0)p+=10;
+  if(n>=IND.net)p+=30;else if(n>=IND.net*.5)p+=18;else if(n>=0)p+=8;
+  if(lb<=IND.lb)p+=20;else if(lb<=IND.lb*1.3)p+=12;else p+=4;
+  if(ob<=IND.op)p+=15;else if(ob<=IND.op*1.3)p+=9;else p+=3;
+  var sc=p>=80?{g:'A',c:'sA',l:'Healthy — strong margins, on benchmark'}:p>=60?{g:'B',c:'sB',l:'Good — solid, one or two areas to improve'}:p>=40?{g:'C',c:'sC',l:'Needs attention — margin pressure'}:{g:'D',c:'sD',l:'At risk — significant issues to address'};
+  $('scoreRing').innerHTML='<div class="score-ring '+sc.c+'">'+sc.g+'</div>';
+  $('scoreLabel').textContent=sc.l;
+}
+
+function renderBenchmarks(){
+  var a=getAdj(),lb=S.revenue?S.labor/S.revenue:0,ob=S.revenue?S.opex/S.revenue:0;
+  var items=[
+    {l:'Gross margin',v:a.bGMp,t:IND.gm,mn:.05,mx:.95,inv:false},
+    {l:'Net margin',v:S.revenue?a.bNet/S.revenue:0,t:IND.net,mn:-.1,mx:.5,inv:false},
+    {l:IND.tL+' % of revenue',v:lb,t:IND.lb,mn:0,mx:.8,inv:true},
+    {l:IND.tO+' % of revenue',v:ob,t:IND.op,mn:0,mx:.5,inv:true}
+  ];
+  $('benchmarks').innerHTML=items.map(function(b){
+    var norm=function(v,mn,mx){return Math.max(0,Math.min(100,(v-mn)/(mx-mn)*100));};
+    var fw=norm(b.v,b.mn,b.mx),tw=norm(b.t,b.mn,b.mx);
+    var good=b.inv?b.v<=b.t*1.2:b.v>=b.t*.85;
+    var col=good?'var(--acc)':b.v>=(b.inv?b.t*1.5:b.t*.5)?'var(--amb)':'var(--red)';
+    return'<div style="margin-bottom:.1rem"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--mut)">'+b.l+'</span><span style="font-family:var(--mono);font-weight:500;color:'+col+'">'+pc(b.v)+'</span></div><div class="bbar"><div class="bfill" style="width:'+fw+'%;background:'+col+'"></div><div class="btgt" style="left:'+tw+'%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-top:2px"><span>'+pc(b.mn)+'</span><span style="color:var(--acc)">Target: '+pc(b.t)+'</span><span>'+pc(b.mx)+'</span></div></div>';
+  }).join('');
+}
+
+function renderInsights(){
+  if(!S.revenue) return;
+  var a=getAdj();
+  var rev=S.revenue, cogs=S.cogs, labor=S.labor, opex=S.opex;
+  var tot=cogs+labor;
+  var gm=rev-tot, gmP=rev?gm/rev:0;
+  var net=gm-opex, netP=rev?net/rev:0;
+  var lbP=rev?labor/rev:0, cgP=rev?cogs/rev:0, opP=rev?opex/rev:0;
+  var moRev=rev/12, moBurn=(tot+opex)/12;
+
+  var insights=[]; // {title, body, type: 'good'|'warn'|'bad'|'info'}
+
+  // ── GROSS MARGIN ──────────────────────────────────────────────
+  if(gmP>=IND.gm){
+    insights.push({type:'good',title:'Gross margin on target ('+pc(gmP)+')',
+      body:'Your '+pc(gmP)+' gross margin meets the '+IND.l+' benchmark of '+pc(IND.gm)+'. To protect this: watch for cost creep in '+IND.tC.toLowerCase()+' as you grow, and reprice at every contract renewal or annual review.'});
+  } else if(gmP<IND.gm*.7){
+    var gap=Math.round((IND.gm-gmP)*rev);
+    insights.push({type:'bad',title:'Gross margin critical — '+pc(gmP)+' vs '+pc(IND.gm)+' benchmark',
+      body:'You need to close a $'+gap.toLocaleString()+'/yr gap to reach the industry benchmark. Every 1% improvement in gross margin adds '+fmt(rev*.01)+' to your bottom line. Use the Target Margin Calculator to see exactly what price increase or cost cut gets you there.'});
+  } else {
+    var needed=Math.round((IND.gm-gmP)*rev);
+    insights.push({type:'warn',title:'Gross margin improving but below target ('+pc(gmP)+')',
+      body:'You are '+pc(IND.gm-gmP)+' below the '+IND.l+' benchmark. Closing this gap requires '+fmt(needed)+'/yr in additional margin — achievable through a combination of pricing adjustments and '+IND.tC.toLowerCase()+' reduction. The scenario levers above model both paths.'});
+  }
+
+  // ── NET MARGIN / PROFITABILITY ────────────────────────────────
+  if(net<0){
+    var monthsToBreakEven=opex>0?Math.abs(net/(gm/12)):0;
+    insights.push({type:'bad',title:'Net loss of '+fmt(Math.abs(net))+' — not yet profitable',
+      body:'The business earns '+fmt(gm)+' in gross profit but spends '+fmt(opex)+' on overhead ('+pc(opP)+' of revenue). Overhead above '+pc(IND.op)+' is the benchmark ceiling. Either '+IND.tO.toLowerCase()+' needs to come down or revenue needs to increase by '+fmt(Math.abs(net))+' to break even.'});
+  } else if(netP<IND.net*.6){
+    insights.push({type:'warn',title:'Net margin below benchmark ('+pc(netP)+' vs '+pc(IND.net)+')',
+      body:'You are profitable but leaving '+fmt((IND.net-netP)*rev)+'/yr on the table vs benchmark. Healthy '+IND.l+' businesses run '+pc(IND.net)+' net margin. Review your '+IND.tO.toLowerCase()+' line by line — overhead tends to accumulate in subscriptions, contractors, and fixed costs that no longer serve growth.'});
+  } else {
+    insights.push({type:'good',title:'Profitable at '+pc(netP)+' net margin',
+      body:'Net income of '+fmt(net)+'/yr ('+pc(netP)+') is '+(netP>=IND.net?'at or above':'approaching')+' the '+pc(IND.net)+' benchmark. Protect this by reviewing overhead quarterly and tying any new fixed costs directly to revenue-generating activity.'});
+  }
+
+  // ── LABOR EFFICIENCY ─────────────────────────────────────────
+  if(lbP>IND.lb*1.4){
+    insights.push({type:'bad',title:IND.tL+' is elevated at '+pc(lbP)+' of revenue',
+      body:'The benchmark for '+IND.l+' is '+pc(IND.lb)+'. You are '+pc(lbP-IND.lb)+' over, costing '+fmt((lbP-IND.lb)*rev)+'/yr above benchmark. This usually means either staffing above current revenue levels, below-market pricing, or roles that could be consolidated. Use the Labor & Staff tool to see cost by person.'});
+  } else if(lbP>IND.lb*1.15){
+    insights.push({type:'warn',title:IND.tL+' slightly above benchmark ('+pc(lbP)+')',
+      body:'You are '+pc(lbP-IND.lb)+' over the '+pc(IND.lb)+' benchmark, adding '+fmt((lbP-IND.lb)*rev)+'/yr in excess labor cost. As revenue grows this ratio should improve naturally — but watch that new hires are tied to revenue milestones, not headcount targets.'});
+  } else if(labor>0){
+    insights.push({type:'good',title:IND.tL+' well-managed at '+pc(lbP)+' of revenue',
+      body:'Labor efficiency is on benchmark. At the current revenue level your team is appropriately sized. The risk to watch: as you grow, labor costs tend to step up in chunks (new hire, salary review) while revenue grows more gradually.'});
+  }
+
+  // ── COGS EFFICIENCY ───────────────────────────────────────────
+  if(cogs>0&&cgP>IND.gm*.7){
+    insights.push({type:'warn',title:IND.tC+' consuming '+pc(cgP)+' of revenue',
+      body:IND.tC+' at '+pc(cgP)+' of revenue is high relative to your margin target. Every $1 reduction in '+IND.tC.toLowerCase()+' flows directly to gross profit. Audit your top 3 '+IND.tC.toLowerCase()+' categories — in most businesses 80% of direct costs come from 20% of line items.'});
+  }
+
+  // ── OVERHEAD RATIO ────────────────────────────────────────────
+  if(opP>IND.op*1.3){
+    insights.push({type:'warn',title:IND.tO+' above benchmark ('+pc(opP)+' vs '+pc(IND.op)+')',
+      body:'Overhead at '+pc(opP)+' of revenue is '+pc(opP-IND.op)+' above benchmark, costing '+fmt((opP-IND.op)*rev)+'/yr. High overhead is a structural issue — it does not shrink automatically when revenue dips. Review all fixed commitments: leases, subscriptions, retainers, and recurring vendor contracts.'});
+  }
+
+  // ── CASH BURN / RUNWAY ────────────────────────────────────────
+  if(moBurn>0){
+    var cashPos=S.cashOnHand||Math.round(rev*.08);
+    var runway=net<0?cashPos/Math.abs(net/12):999;
+    if(net<0&&runway<6){
+      insights.push({type:'bad',title:'Cash runway of ~'+Math.round(runway)+' months — urgent',
+        body:'At the current burn rate of '+fmt(moBurn)+'/mo vs '+fmt(moRev)+'/mo revenue, cash reserves cover approximately '+Math.round(runway)+' months. This requires immediate action: accelerate collections, defer non-essential expenses, and explore bridge financing or revenue acceleration.'});
+    } else if(net>0){
+      insights.push({type:'info',title:'Monthly cash generation: '+fmt(net/12),
+        body:'The business generates '+fmt(net/12)+'/mo in net income. Use this to build a cash reserve of at least 3–6 months of operating expenses (target: '+fmt(moBurn*3)+'–'+fmt(moBurn*6)+') before deploying into growth. Check the Runway tool for scenario modeling.'});
+    }
+  }
+
+  // ── REVENUE CONCENTRATION / SCALE ────────────────────────────
+  if(rev<200000){
+    insights.push({type:'info',title:'Revenue scale: '+fmt(rev)+'/yr ('+fmt(moRev)+'/mo)',
+      body:'At this revenue level, every percentage point of margin improvement has an outsized impact. Focus on pricing discipline before adding overhead — a 5% price increase on '+fmt(rev)+' adds '+fmt(rev*.05)+'/yr with zero additional cost.'});
+  } else if(rev>1000000){
+    insights.push({type:'info',title:'Revenue at scale: '+fmt(rev)+'/yr',
+      body:'At this revenue level, operational efficiency becomes the primary lever. A 1% improvement in gross margin is worth '+fmt(rev*.01)+'/yr. Standardize your pricing, automate collections, and review vendor contracts annually — small % improvements compound significantly at this scale.'});
+  }
+
+  // ── INDUSTRY-SPECIFIC INSIGHT ─────────────────────────────────
+  var indInsight={
+    restaurant:cogs>0?{type:'info',title:'Food cost ratio: '+pc(cgP),body:'Food cost ('+pc(cgP)+') '+(cgP<.32?'is within the 28-32% target — strong menu pricing discipline.':'is above the 28-32% target. Review your menu mix, portion sizes, and supplier contracts. A 2% reduction in food cost on '+fmt(rev)+' revenue is worth '+fmt(rev*.02)+'/yr.')}: null,
+    healthcare:labor>0?{type:'info',title:'Clinical labor as % of revenue: '+pc(lbP),body:'Healthcare labor at '+pc(lbP)+' of revenue. '+(lbP<.45?'Within range for a physician-heavy practice.':'Consider payer mix optimization and revenue cycle management — collections rate and days-in-AR directly impact how much of your earned revenue you actually receive.')}: null,
+    saas:opex>0?{type:'info',title:'Sales & marketing efficiency',body:'In SaaS, gross margin ('+pc(gmP)+') should fund growth. If CAC payback is over 18 months, marketing spend may be outpacing returns. Track revenue per customer and churn rate monthly — both have more impact on valuation than top-line growth alone.'}: null,
+    agency:labor>0?{type:'info',title:'Utilization & billing efficiency',body:'Agency profitability is driven by utilization rate (billable hours / total hours, target 70-80%) and effective billing rate. If gross margin is below '+pc(IND.gm)+', the most common cause is underpricing, scope creep, or below-target utilization on senior staff.'}: null,
+    msp:cogs>0?{type:'info',title:'MSP cost efficiency: '+pc(cgP)+' of revenue',body:'MSP/contractor cost at '+pc(cgP)+' of revenue. '+(cgP<.12?'Below the 12% benchmark — well controlled.':'Above the 12% benchmark. Your top contractor by spend is your primary lever. Review scope, hours, and rates against deliverables quarterly.')}: null,
+    law:labor>0?{type:'info',title:'Overhead ratio: '+pc(opP),body:'Law firm overhead at '+pc(opP)+' of revenue. Benchmark is under '+pc(IND.op)+'. Revenue per attorney and realization rate (billed/worked hours) are the two most impactful CFO metrics — a 5% improvement in realization rate on '+fmt(labor)+' in attorney cost is worth '+fmt(labor*.05)+'/yr.'}: null,
+    construction:net<0||cgP>.8?{type:'warn',title:'Job cost ratio: '+pc(cgP),body:'Materials and subcontractor cost at '+pc(cgP)+' of revenue. In construction, gross margin below 15% leaves no buffer for rework, delays, or change order disputes. Review your bid process and markup rates — underpricing is the most common cause of thin margins in construction.'}: null,
+  };
+  var ii=indInsight[S.industry];
+  if(ii) insights.push(ii);
+
+  // ── RENDER ────────────────────────────────────────────────────
+  var overallType=insights.some(function(i){return i.type==='bad';})?'bad':insights.some(function(i){return i.type==='warn';})?'warn':'good';
+  var box=$('insightBox');
+  box.className='ibox '+overallType;
+
+  // Group by type for visual hierarchy
+  var bads=insights.filter(function(i){return i.type==='bad';});
+  var warns=insights.filter(function(i){return i.type==='warn';});
+  var goods=insights.filter(function(i){return i.type==='good';});
+  var infos=insights.filter(function(i){return i.type==='info';});
+  var ordered=bads.concat(warns).concat(goods).concat(infos);
+
+  box.innerHTML=
+    '<div style="font-family:var(--serif);font-size:15px;color:var(--acc);margin-bottom:1rem;font-weight:600">CFO Insights — '+(S.bizName||IND.l)+'</div>'+
+    ordered.map(function(ins){
+      var iconMap={good:'✓',warn:'⚡',bad:'⚠',info:'→'};
+      var colorMap={good:'var(--acc)',warn:'var(--amb)',bad:'var(--red)',info:'var(--blu)'};
+      var bgMap={good:'var(--accL)',warn:'var(--ambL)',bad:'var(--redL)',info:'var(--bluL)'};
+      var bdrMap={good:'#aecfbd',warn:'#e8d098',bad:'#e8b0b0',info:'#a8c0e0'};
+      return'<div style="background:'+bgMap[ins.type]+';border:1px solid '+bdrMap[ins.type]+';border-radius:9px;padding:.85rem 1rem;margin-bottom:.65rem;display:flex;gap:10px;align-items:flex-start">'+
+        '<div style="width:20px;height:20px;border-radius:50%;background:'+colorMap[ins.type]+';color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">'+iconMap[ins.type]+'</div>'+
+        '<div><div style="font-size:13px;font-weight:600;color:'+colorMap[ins.type]+';margin-bottom:3px">'+ins.title+'</div>'+
+        '<div style="font-size:12px;color:var(--mut);line-height:1.6">'+ins.body+'</div></div>'+
+      '</div>';
+    }).join('');
+}
+
+
+// ── MONTH COMPARISON TABLE ────────────────────────────────────────
+function renderCompareTable(moIdxs, MO, rows){
+  var months=moIdxs.map(function(i){return S.cfMonths[i];});
+  var MO_NAMES=MO;
+
+  // For each row, get values for each month
+  // Revenue and expenses come from cfMonths; split expenses by proportion
+  var totRev=S.revenue, totCogs=S.cogs, totLab=S.labor, totOpex=S.opex;
+  var totTot=totCogs+totLab;
+
+  function getMonthVal(label, moData){
+    var moRev=moData.revenue||0;
+    var moExp=moData.expenses||0;
+    // Estimate splits from annual proportions
+    var cogsR=totRev?totCogs/totRev:0;
+    var labR=totRev?totLab/totRev:0;
+    var opexR=totRev?totOpex/totRev:0;
+    var moCogs=Math.round(moRev*cogsR);
+    var moLab=Math.round(moRev*labR);
+    var moOpex=Math.round(moRev*opexR);
+    var moTot=moCogs+moLab;
+    var moGM=moRev-moTot;
+    var moNet=moGM-moOpex;
+    var map={};
+    map[IND.tR]=moRev; map[IND.tC]=moCogs; map[IND.tL]=moLab;
+    map['Total COGS']=moTot; map['Gross margin']=moGM;
+    map[IND.tO]=moOpex; map['Net margin']=moNet;
+    return map[label]!==undefined?map[label]:0;
+  }
+
+  // Build header
+  var t='<thead><tr><th>Line item</th>';
+  moIdxs.forEach(function(i){ t+='<th class="tr" style="color:var(--acc)">'+MO_NAMES[i]+'</th>'; });
+  // Add trend column if 2 months
+  if(moIdxs.length===2) t+='<th class="tr" style="color:var(--sub)">Trend</th>';
+  else t+='<th class="tr" style="color:var(--sub)">vs Prior Mo</th>';
+  t+='</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var cls=r.tot?'ttot':'';
+    var isM=r.l==='Gross margin'||r.l==='Net margin';
+    var vals=moIdxs.map(function(i){return getMonthVal(r.l,S.cfMonths[i]);});
+    t+='<tr class="'+cls+'"><td class="tmu">'+r.l+'</td>';
+    vals.forEach(function(v,i){
+      t+='<td class="tr tm '+(isM?(v<0?'vr':'vg'):'')+'">'+(v<0?'-':'')+fmt(v)+'</td>';
+    });
+    // Trend: compare last month to first month
+    var first=vals[0], last=vals[vals.length-1];
+    var diff=last-first;
+    var good=r.lib?diff<0:diff>0;
+    var arrow=diff===0?'—':diff>0?'<span style="color:'+(good?'var(--acc)':'var(--red)')+'">▲ '+fmt(Math.abs(diff))+'</span>':'<span style="color:'+(good?'var(--acc)':'var(--red)')+'">▼ '+fmt(Math.abs(diff))+'</span>';
+    var pctChg=first!==0?((diff/Math.abs(first))*100).toFixed(1)+'%':'';
+    t+='<td class="tr" style="font-size:12px">'+arrow+(pctChg&&diff!==0?' <span style="font-size:10px;color:var(--sub)">('+pctChg+')</span>':'')+'</td>';
+    t+='</tr>';
+  });
+
+  if($('plTable')) $('plTable').innerHTML=t+'</tbody>';
+}
+
+// ── OVERVIEW TOOL ─────────────────────────────────────────────────
+function renderOverview(){
+  var el=$('tp-overview'); if(!el) return;
+  var a=getAdj();
+  el.innerHTML=
+    '<div class="sec">Period selector</div>'+
+    '<div class="panel" style="margin-bottom:1.5rem">'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.75rem">'+
+        '<div style="font-size:12px;color:var(--mut);font-weight:500;white-space:nowrap">From:</div>'+
+        '<select id="periodFrom" onchange="switchPeriodRange()" style="border:1px solid var(--bdr);border-radius:7px;padding:6px 10px;font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--txt);outline:none;cursor:pointer">'+
+          '<option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>'+
+        '</select>'+
+        '<div style="font-size:12px;color:var(--mut);font-weight:500;white-space:nowrap">To:</div>'+
+        '<select id="periodTo" onchange="switchPeriodRange()" style="border:1px solid var(--bdr);border-radius:7px;padding:6px 10px;font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--txt);outline:none;cursor:pointer">'+
+          '<option value="-1">— (single month)</option>'+
+          '<option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11" selected>Dec</option>'+
+        '</select>'+
+        '<button onclick="resetPeriod()" style="background:var(--surf2);border:1px solid var(--bdrS);color:var(--mut);border-radius:7px;padding:5px 11px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500">Full year</button>'+
+        '<span id="periodBadge" style="font-size:11px;background:var(--accL);color:var(--acc);padding:2px 8px;border-radius:12px;font-weight:500;display:none">Partial period</span>'+
+        '<span id="periodLabel" style="font-size:12px;color:var(--sub)"></span>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div style="font-size:11px;color:var(--sub);font-weight:500;text-transform:uppercase;letter-spacing:.07em">View as:</div>'+
+        '<button id="modeTotal" onclick="setPeriodMode(0)" style="background:var(--acc);border:1px solid var(--acc);color:#fff;border-radius:7px;padding:4px 12px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500">Combined total</button>'+
+        '<button id="modeCompare" onclick="setPeriodMode(1)" style="background:var(--surf2);border:1px solid var(--bdrS);color:var(--mut);border-radius:7px;padding:4px 12px;cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:500">Month comparison ▲▼</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="tcol" style="margin-bottom:1.5rem">'+
+    '<div class="panel" style="margin-bottom:0">'+
+      '<div class="ptitle">Scenario levers</div>'+
+      '<div class="psub">Drag to model — P&L updates live</div>'+
+      '<div class="sg"><div class="sh"><label class="sl">Revenue increase</label><span class="sv" id="lv1">0%</span></div><input type="range" id="sr1" min="0" max="50" step="1" value="0"></div>'+
+      '<div class="sg"><div class="sh"><label class="sl">'+IND.tC+' reduction</label><span class="sv" id="lv2">0%</span></div><input type="range" id="sr2" min="0" max="50" step="1" value="0"></div>'+
+      '<div class="sg"><div class="sh"><label class="sl">'+IND.tL+' reduction</label><span class="sv" id="lv3">0%</span></div><input type="range" id="sr3" min="0" max="40" step="1" value="0"></div>'+
+      '<div class="sg"><div class="sh"><label class="sl">'+IND.tO+' reduction</label><span class="sv" id="lv4">0%</span></div><input type="range" id="sr4" min="0" max="30" step="1" value="0"></div>'+
+      '<hr>'+
+      '<div style="font-size:11px;font-weight:500;color:var(--mut);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.07em">Target margin calculator</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.5rem">'+
+        '<label style="font-size:12px;color:var(--mut)">I want</label>'+
+        '<input type="number" id="tgtGM" value="'+(S.targetMargin||35)+'" min="1" max="90" style="width:58px;border:1px solid var(--bdr);border-radius:6px;padding:4px 7px;font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--txt);outline:none">'+
+        '<label style="font-size:12px;color:var(--mut)">% GM via</label>'+
+        '<select id="revLev" style="border:1px solid var(--bdr);border-radius:6px;padding:4px 7px;font-family:var(--sans);font-size:12px;background:var(--bg);color:var(--txt);outline:none;cursor:pointer">'+
+          '<option value="revenue">Revenue increase</option>'+
+          '<option value="cogs">COGS reduction</option>'+
+          '<option value="labor">Labor reduction</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="rev-box"><div style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em">Required change</div><div class="rev-val" id="revResult">—</div><div class="rev-sub" id="revSub"></div></div>'+
+      '<div class="cw" style="height:180px;margin-top:1rem"><canvas id="ovChart"></canvas></div>'+
+    '</div>'+
+    '<div class="panel" style="margin-bottom:0">'+
+      '<div class="ptitle">P&L — before vs after</div>'+
+      '<div class="psub">Drag levers to model changes</div>'+
+      '<table id="plTable"></table>'+
+    '</div>'+
+  '</div>'+
+  '<div class="panel"><div class="ptitle">Notes</div><textarea id="notes" rows="3" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:10px;font-family:var(--sans);font-size:13px;color:var(--txt);outline:none;resize:vertical" placeholder="Context for this period..." oninput="S.notes=this.value">'+esc(S.notes)+'</textarea></div>';
+
+  ['sr1','sr2','sr3','sr4'].forEach(function(id,i){
+    var el=$(id); if(!el) return;
+    el.oninput=function(){$('lv'+(i+1)).textContent=el.value+'%'; renderOvData(); calcReverse();};
+  });
+  if($('tgtGM')) $('tgtGM').oninput=calcReverse;
+  if($('revLev')) $('revLev').onchange=calcReverse;
+  renderOvData();
+  calcReverse();
+}
+
+function renderOvData(){
+  var a=getAdj();
+  var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var fromV=parseInt($('periodFrom')&&$('periodFrom').value||0);
+  var toV=parseInt($('periodTo')&&$('periodTo').value||11);
+  var toActual=toV===-1?fromV:toV;
+  if(toActual<fromV) toActual=fromV;
+  var isFullYear=(fromV===0&&toActual===11)||(!$('periodFrom'));
+  var isSingleMo=(toV===-1||fromV===toActual);
+  var periodLabel;
+  if(S.rawRevenue&&S.rawRevenue>0&&isFullYear) periodLabel=S.periodMonths+'-month actual';
+  else if(isFullYear) periodLabel='Year (full)';
+  else if(isSingleMo) periodLabel=MO[fromV]+' only';
+  else periodLabel=MO[fromV]+' – '+MO[toActual];
+  var from=fromV, to=toActual;
+
+  // Build raw value map for partial-year files
+  var rawTotC=(S.rawCogs||0)+(S.rawLabor||0);
+  var rawGMC=(S.rawRevenue||0)-rawTotC;
+  var rawMap={};
+  rawMap[IND.tR]=S.rawRevenue||0; rawMap[IND.tC]=S.rawCogs||0; rawMap[IND.tL]=S.rawLabor||0;
+  rawMap['Total COGS']=rawTotC; rawMap['Gross margin']=rawGMC;
+  rawMap[IND.tO]=S.rawOpex||0; rawMap['Net margin']=rawGMC-(S.rawOpex||0);
+
+  var rows=[
+    {l:IND.tR,        b:S.revenue, adj:a.aR,  lib:false},
+    {l:IND.tC,        b:S.cogs,    adj:a.aC,  lib:true},
+    {l:IND.tL,        b:S.labor,   adj:a.aL,  lib:true},
+    {l:'Total COGS',  b:a.bT,      adj:a.aT,  lib:true,  tot:true},
+    {l:'Gross margin',b:a.bGM,     adj:a.aGM, lib:false, tot:true, pcts:[a.bGMp,a.aGMp]},
+    {l:IND.tO,        b:S.opex,    adj:a.aO,  lib:true},
+    {l:'Net margin',  b:a.bNet,    adj:a.aNet,lib:false, tot:true}
+  ];
+
+  // ── COMPARE MODE: show each month as its own column ────────────
+  if(periodMode==='compare'&&!isFullYear&&!isSingleMo&&S.cfMonths&&S.cfMonths.length>0){
+    var moIdxs=[];
+    for(var i=from;i<=to;i++) moIdxs.push(i);
+    // Only compare if we have monthly data
+    var hasMoData=moIdxs.every(function(i){return S.cfMonths[i]&&S.cfMonths[i].revenue>0;});
+    if(hasMoData&&moIdxs.length>=2){
+      renderCompareTable(moIdxs, MO, rows);
+      calcReverse();
+      return;
+    }
+  }
+
+  // ── STANDARD MODE ─────────────────────────────────────────────
+  var t='<thead><tr>'+
+    '<th>Line item</th>'+
+    '<th class="tr" style="color:var(--blu)">'+(S.periodMonths&&S.periodMonths<12?'Annualized ('+S.periodMonths+' mo)':'Year (annual)')+'</th>'+
+    '<th class="tr" style="color:var(--acc)">'+(S.rawRevenue&&S.rawRevenue>0&&isFullYear?S.periodMonths+'-month actual':periodLabel)+'</th>'+
+    '<th class="tr">Change</th>'+
+  '</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var d=r.adj-r.b, good=r.lib?d<0:d>0;
+    var dc=d===0?'':(good?'vg':'vr');
+    var cls=r.tot?'ttot':'';
+    var isM=r.l==='Gross margin'||r.l==='Net margin';
+    var ps=r.pcts?' <span style="font-size:10px;color:var(--sub)">('+pc(r.pcts[0])+' → '+pc(r.pcts[1])+')</span>':'';
+    var useRaw=S.rawRevenue&&S.rawRevenue>0&&isFullYear;
+    var dispAdj=useRaw?(rawMap[r.l]!==undefined?rawMap[r.l]:r.adj):r.adj;
+    var yearVal=r.b;
+    var d2=dispAdj-yearVal, g2=r.lib?d2<0:d2>0, dc2=d2===0?'':(g2?'vg':'vr');
+    t+='<tr class="'+cls+'"><td class="tmu">'+r.l+ps+'</td>'+
+      '<td class="tr tm" style="color:var(--blu)">'+(yearVal<0?'-':'')+fmt(yearVal)+'</td>'+
+      '<td class="tr tm '+(isM?(dispAdj<0?'vr':'vg'):'')+'">'+(dispAdj<0?'-':'')+fmt(dispAdj)+'</td>'+
+      '<td class="tr tm '+dc2+'">'+(d2===0?'—':(d2>0?'+':'-')+fmt(Math.abs(d2)))+'</td></tr>';
+  });
+  if($('plTable')) $('plTable').innerHTML=t+'</tbody>';
+  calcReverse();
+
+  // Chart
+  var ctx=$('ovChart'); if(!ctx) return;
+  if(Charts.ov){Charts.ov.destroy();}
+  Charts.ov=new Chart(ctx,{type:'bar',data:{labels:[IND.tR,IND.tC,IND.tL,IND.tO,'Net'],datasets:[
+    {label:'Current',data:[S.revenue,S.cogs,S.labor,S.opex,a.bNet].map(Math.round),backgroundColor:'rgba(42,92,69,.2)',borderColor:'rgba(42,92,69,.4)',borderWidth:1.5,borderRadius:3,borderSkipped:false},
+    {label:'Adjusted',data:[a.aR,a.aC,a.aL,a.aO,a.aNet].map(Math.round),backgroundColor:a.aGMp>a.bGMp?'rgba(42,92,69,.65)':'rgba(158,43,43,.5)',borderRadius:3,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': $'+c.parsed.y.toLocaleString();}}}},scales:{x:{ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return'$'+Math.round(v/1000)+'k';}},grid:{color:'#ede9e3'}}}}});
+}
+
+function calcReverse(){
+  var tgt=parseFloat(($('tgtGM')&&$('tgtGM').value)||35)/100;
+  var lever=($('revLev')&&$('revLev').value)||'revenue';
+  var rr=$('revResult'),rs=$('revSub'); if(!rr) return;
+  if(!S.revenue||!tgt){rr.textContent='—';return;}
+  var tot=S.cogs+S.labor,result='',sub='';
+  if(lever==='revenue'){var need=tot/(1-tgt),d=need-S.revenue;result=(d>0?'+':'-')+fmt(Math.abs(d));sub='Revenue needs to be '+fmt(need)+'/yr';}
+  else if(lever==='cogs'){var mx=S.revenue*(1-tgt),need=mx-S.labor;result=need<0?'Not achievable':'-'+fmt(S.cogs-need);sub=need>=0?IND.tC+' needs to drop to '+fmt(need)+'/yr':'';}
+  else{var mx=S.revenue*(1-tgt),need=mx-S.cogs;result=need<0?'Not achievable':'-'+fmt(S.labor-need);sub=need>=0?IND.tL+' needs to drop to '+fmt(need)+'/yr':'';}
+  rr.textContent=result; rs.textContent=sub;
+}
+
+// ── CASH FLOW TOOL ────────────────────────────────────────────────
+function renderCashFlow(){
+  var el=$('tp-cashflow'); if(!el) return;
+  var moR=S.revenue/12, moE=(S.cogs+S.labor+S.opex)/12;
+  var cash=S.cashOnHand||Math.round(S.revenue*.08);
+  var netMo=moR-moE;
+  var bal=[Math.round(cash)];
+  for(var i=1;i<=13;i++) bal.push(Math.round(bal[i-1]+(moR-moE)));
+  var moData=S.cfMonths.length>0?S.cfMonths:['Jan','Feb','Mar','Apr','May','Jun'].map(function(m){return{month:m,revenue:Math.round(moR),expenses:Math.round(moE)};});
+
+  el.innerHTML='<div class="sec">Cash flow — auto-populated from your P&L</div>'+
+    '<div class="mrow4"><div class="mc '+(netMo>=0?'cg':'cr')+'"><div class="ml">Monthly net cash</div><div class="mv '+(netMo>=0?'vg':'vr')+'">'+(netMo>=0?'+':'')+fmt(netMo)+'</div><div class="ms">Revenue minus expenses</div></div>'+
+    '<div class="mc cb"><div class="ml">Cash on hand</div><div class="mv">'+fmt(cash)+'</div><div class="ms">Starting balance</div></div>'+
+    '<div class="mc '+(bal[13]>=0?'cg':'cr')+'"><div class="ml">Cash in 13 weeks</div><div class="mv '+(bal[13]>=0?'vg':'vr')+'">'+(bal[13]<0?'-':'')+fmt(bal[13])+'</div><div class="ms">Projected</div></div>'+
+    '<div class="mc cw"><div class="ml">Monthly expenses</div><div class="mv va">'+fmt(moE)+'</div><div class="ms">COGS+Labor+OPEX ÷ 12</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">13-week cash forecast</div><div class="cw" style="height:230px"><canvas id="cfChart"></canvas></div></div>'+
+    '<div class="panel"><div class="ptitle">Monthly actuals</div><div class="psub">'+(S.cfMonths.length>0?'From your P&L file':'Estimated from annual figures')+'</div><div style="overflow-x:auto"><table id="cfTable"></table></div></div></div>';
+
+  setTimeout(function(){
+    var ctx=$('cfChart'); if(!ctx) return;
+    if(Charts.cf) Charts.cf.destroy();
+    Charts.cf=new Chart(ctx,{type:'line',data:{labels:['Now'].concat(Array.from({length:13},function(_,i){return'Wk '+(i+1);})),datasets:[{label:'Cash balance',data:bal,borderColor:'#2a5c45',backgroundColor:'rgba(42,92,69,.08)',fill:true,tension:.3,pointRadius:3,borderWidth:2},{label:'Zero',data:Array(14).fill(0),borderColor:'rgba(158,43,43,.4)',borderDash:[5,5],fill:false,pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return'$'+Math.round(v/1000)+'k';}},grid:{color:'#ede9e3'}}}}});
+    var t='<thead><tr><th>Month</th><th class="tr">Revenue</th><th class="tr">Expenses</th><th class="tr">Net</th></tr></thead><tbody>';
+    moData.forEach(function(m){var n=(m.revenue||0)-(m.expenses||0);t+='<tr><td class="tmu">'+m.month+'</td><td class="tr tm vg">'+fmt(m.revenue)+'</td><td class="tr tm vr">'+fmt(m.expenses)+'</td><td class="tr tm '+(n>=0?'vg':'vr')+'">'+(n>=0?'+':'-')+fmt(Math.abs(n))+'</td></tr>';});
+    if($('cfTable')) $('cfTable').innerHTML=t+'</tbody>';
+  },50);
+}
+
+// ── BREAK-EVEN TOOL ───────────────────────────────────────────────
+function renderBreakEven(){
+  var el=$('tp-breakeven'); if(!el) return;
+  var fc=S.fixedCosts||Math.round(S.opex/12);
+  var vp=S.variableCostPct||Math.round(S.cogs/Math.max(S.revenue,1)*100*.45);
+  var pu=S.pricePerUnit||Math.round(S.revenue/12);
+  var cm=pu*(1-vp/100);
+  var beU=cm>0?Math.ceil(fc/cm):0, beR=beU*pu;
+  var moR=S.revenue/12, above=moR-beR;
+
+  el.innerHTML='<div class="sec">Break-even — auto-calculated from your P&L</div>'+
+    '<div class="mrow4"><div class="mc cw"><div class="ml">Monthly fixed costs</div><div class="mv va">'+fmt(fc)+'</div><div class="ms">OPEX ÷ 12</div></div>'+
+    '<div class="mc cw"><div class="ml">Variable cost %</div><div class="mv va">'+vp+'%</div><div class="ms">COGS / Revenue</div></div>'+
+    '<div class="mc cw"><div class="ml">Break-even revenue/mo</div><div class="mv va">'+(beR>0?fmt(beR):'—')+'</div><div class="ms">'+(beU>0?Math.ceil(beU).toLocaleString()+' units':'')+'</div></div>'+
+    '<div class="mc '+(above>=0?'cg':'cr')+'"><div class="ml">You are</div><div class="mv '+(above>=0?'vg':'vr')+'">'+(above>=0?'+':'')+fmt(above)+'/mo</div><div class="ms">'+(above>=0?'above break-even':'below break-even')+'</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">Break-even chart</div><div class="cw" style="height:240px"><canvas id="beChart"></canvas></div></div>'+
+    '<div class="panel"><div class="ptitle">Adjust inputs</div><div class="psub">Override auto-calculated values</div>'+
+    '<div class="ig"><label>Monthly fixed costs ($)</label><input type="number" id="beFc" value="'+fc+'" oninput="S.fixedCosts=+this.value;renderBreakEven()"></div>'+
+    '<div class="ig"><label>Variable cost % of revenue</label><input type="number" id="beVp" value="'+vp+'" min="0" max="99" oninput="S.variableCostPct=+this.value;renderBreakEven()"></div>'+
+    '<div class="ig"><label>Price per unit / per sale ($)</label><input type="number" id="bePu" value="'+pu+'" oninput="S.pricePerUnit=+this.value;renderBreakEven()"></div>'+
+    (above<0?'<div class="ibox bad" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Below break-even by '+fmt(Math.abs(above))+'/mo. You need '+fmt(Math.abs(above)*12)+'/yr more revenue or lower costs.</span></div></div>':'')+
+    (above>=0?'<div class="ibox good" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Above break-even by '+fmt(above)+'/mo. Each extra unit generates '+fmt(cm)+' in margin.</span></div></div>':'')+
+    '</div></div>';
+
+  setTimeout(function(){
+    var ctx=$('beChart'); if(!ctx||!pu||!fc) return;
+    var maxU=Math.ceil(beU*2.5)||50;
+    var pts=Array.from({length:20},function(_,i){return Math.round(i*maxU/19);});
+    if(Charts.be) Charts.be.destroy();
+    Charts.be=new Chart(ctx,{type:'line',data:{labels:pts,datasets:[{label:'Revenue',data:pts.map(function(u){return Math.round(u*pu);}),borderColor:'#2a5c45',fill:false,tension:0,pointRadius:0,borderWidth:2},{label:'Total Cost',data:pts.map(function(u){return Math.round(fc+u*pu*vp/100);}),borderColor:'#9e2b2b',fill:false,tension:0,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5c5954',font:{size:11}}}},scales:{x:{title:{display:true,text:'Units',color:'#8f8b87',font:{size:10}},ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return'$'+Math.round(v/1000)+'k';}},grid:{color:'#ede9e3'}}}}});
+  },50);
+}
+
+// ── PRICING TOOL ──────────────────────────────────────────────────
+function renderPricing(){
+  var el=$('tp-pricing'); if(!el) return;
+  var cost=S.costPerUnit||Math.round((S.cogs+S.labor)/12);
+  var tgt=S.targetMargin||Math.round(IND.gm*100);
+  var tP=cost>0?Math.round(cost/(1-tgt/100)):0;
+  var comp=S.competitorPrice||0;
+  var cM=comp>0&&cost>0?Math.round((comp-cost)/comp*100):0;
+
+  el.innerHTML='<div class="sec">Pricing — based on your cost structure</div>'+
+    '<div class="mrow4"><div class="mc cw"><div class="ml">Your cost per unit</div><div class="mv va">'+fmt(cost)+'</div><div class="ms">COGS+Labor ÷ 12 (auto)</div></div>'+
+    '<div class="mc '+(tP>0?'cg':'')+'"><div class="ml">Price for '+tgt+'% margin</div><div class="mv vg">'+(tP>0?fmt(tP):'Set cost')+'</div><div class="ms">Your target price</div></div>'+
+    '<div class="mc '+(comp>0?(comp>=tP?'cg':'cr'):'cb')+'"><div class="ml">Competitor price</div><div class="mv '+(comp>0?(comp>=tP?'vg':'vr'):'vb')+'">'+(comp>0?fmt(comp):'Not set')+'</div><div class="ms">'+(comp>0?'Est. '+cM+'% margin':'')+'</div></div>'+
+    '<div class="mc cb"><div class="ml">Units/mo at target price</div><div class="mv vb">'+(tP>0?Math.round(S.revenue/12/tP).toLocaleString():'—')+'</div><div class="ms">To match current revenue</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">Pricing inputs</div>'+
+    '<div class="ig"><label>Your cost per unit ($) — auto from P&L</label><input type="number" id="prCost" value="'+cost+'" oninput="S.costPerUnit=+this.value;renderPricing()"></div>'+
+    '<div class="ig"><label>Target gross margin %</label><input type="number" id="prTgt" value="'+tgt+'" min="1" max="90" oninput="S.targetMargin=+this.value;renderPricing()"></div>'+
+    '<div class="ig"><label>Competitor price ($)</label><input type="number" id="prComp" value="'+(comp||'')+'" placeholder="Optional" oninput="S.competitorPrice=+this.value;renderPricing()"></div>'+
+    '<hr><div style="font-size:11px;font-weight:500;color:var(--mut);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.07em">Pricing tiers</div>'+
+    '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:6px;margin-bottom:5px"><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Tier</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Price</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Units/mo</span><span></span></div>'+
+    '<div id="prTiers"></div><span class="addbtn" onclick="addPrTier()">+ Add tier</span>'+
+    '</div><div class="panel"><div class="ptitle">Margin by price point</div><div class="cw" style="height:200px"><canvas id="prChart"></canvas></div><table id="prTable" style="margin-top:1rem"></table></div></div>';
+
+  buildPrTiers();
+  setTimeout(function(){
+    var ctx=$('prChart'); if(!ctx||!cost) return;
+    var prices=Array.from({length:10},function(_,i){return Math.round(cost*(1+i*.15));});
+    var margins=prices.map(function(p){return Math.round((p-cost)/p*100);});
+    if(Charts.pr) Charts.pr.destroy();
+    Charts.pr=new Chart(ctx,{type:'bar',data:{labels:prices.map(function(p){return'$'+p;}),datasets:[{label:'Margin %',data:margins,backgroundColor:margins.map(function(m){return m>=tgt?'rgba(42,92,69,.7)':'rgba(122,79,0,.4)';}),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return v+'%';}},grid:{color:'#ede9e3'}}}}});
+  },50);
+}
+
+function buildPrTiers(){
+  var el=$('prTiers'); if(!el) return;
+  el.innerHTML='';
+  PT.forEach(function(p,i){
+    var d=document.createElement('div');
+    d.style.cssText='display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:end';
+    d.innerHTML='<input type="text" placeholder="e.g. Basic" value="'+esc(p.name||'')+'" oninput="PT['+i+'].name=this.value" style="background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;font-family:var(--sans);outline:none">'+
+      '<input type="number" placeholder="0" value="'+(p.price||'')+'" oninput="PT['+i+'].price=+this.value;renderPricingTable()" style="background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;font-family:var(--mono);outline:none">'+
+      '<input type="number" placeholder="0" value="'+(p.units||'')+'" oninput="PT['+i+'].units=+this.value;renderPricingTable()" style="background:var(--bg);border:1px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;font-family:var(--mono);outline:none">'+
+      '<button class="rmbtn" onclick="PT.splice('+i+',1);buildPrTiers();renderPricingTable()">×</button>';
+    el.appendChild(d);
+  });
+  renderPricingTable();
+}
+function addPrTier(){PT.push({name:'',price:0,units:0});buildPrTiers();}
+function renderPricingTable(){
+  var tbl=$('prTable'); if(!tbl||!PT.length) return;
+  var cost=S.costPerUnit||Math.round((S.cogs+S.labor)/12);
+  var tgt=(S.targetMargin||Math.round(IND.gm*100))/100;
+  var t='<thead><tr><th>Tier</th><th class="tr">Price</th><th class="tr">Units/mo</th><th class="tr">Monthly rev</th><th class="tr">Margin</th><th class="tr">Profit/mo</th></tr></thead><tbody>';
+  PT.forEach(function(p){
+    if(!p.price) return;
+    var rev=p.price*(p.units||0),m=cost?(p.price-cost)/p.price:0,prof=(p.price-cost)*(p.units||0);
+    t+='<tr><td class="tmu">'+(p.name||'—')+'</td><td class="tr tm">'+fmt(p.price)+'</td><td class="tr tm">'+((p.units||0).toLocaleString())+'</td><td class="tr tm vg">'+fmt(rev)+'</td><td class="tr tm '+(m>=tgt?'vg':'vr')+'">'+pc(m)+'</td><td class="tr tm '+(prof>=0?'vg':'vr')+'">'+(prof>=0?'+':'')+fmt(prof)+'</td></tr>';
+  });
+  tbl.innerHTML=t+'</tbody>';
+}
+
+// ── LABOR TOOL ────────────────────────────────────────────────────
+function renderLabor(){
+  var el=$('tp-labor'); if(!el) return;
+  var salT=gSal(),mspT=gMsp(),lbPct=S.revenue?S.labor/S.revenue:0;
+  el.innerHTML='<div class="sec">Labor & staff — from your P&L</div>'+
+    '<div class="mrow4"><div class="mc '+(lbPct<=IND.lb?'cg':'cw')+'"><div class="ml">Labor % of revenue</div><div class="mv '+(lbPct<=IND.lb?'vg':'va')+'">'+pc(lbPct)+'</div><div class="ms">Target ≤'+pc(IND.lb)+'</div></div>'+
+    '<div class="mc cb"><div class="ml">Total annual labor</div><div class="mv">'+fmt(S.labor)+'</div><div class="ms">'+fmt(S.labor/12)+'/mo</div></div>'+
+    '<div class="mc cw"><div class="ml">Staff salaries</div><div class="mv va">'+(salT>0?fmt(salT):'—')+'</div><div class="ms">'+(S.staff.length>0?S.staff.length+' people':'No staff sheet found')+'</div></div>'+
+    '<div class="mc cw"><div class="ml">MSP / Contractors</div><div class="mv va">'+(mspT>0?fmt(mspT):'—')+'</div><div class="ms">'+(S.msp.length>0?S.msp.length+' resource(s)':'Not found in file')+'</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">Staff salary detail</div><div class="psub">'+(S.staff.length>0?'From your Salaries/Staff sheet':'Import a file with a Salaries or Staff sheet')+'</div><table id="salTable"></table><hr><span class="addbtn" onclick="addStaff()">+ Add person</span></div>'+
+    '<div class="panel"><div class="ptitle">MSP / Contractor detail</div><div class="psub">'+(S.msp.length>0?'From your MSP/Contractors sheet':'Import a file with an MSP or Contractors sheet')+'</div><table id="mspTable"></table><hr><span class="addbtn" onclick="addMSP()">+ Add contractor</span></div></div>'+
+    '<div class="panel"><div class="ptitle">Labor breakdown</div><div class="cw" style="height:200px"><canvas id="lbChart"></canvas></div></div>';
+
+  renderSalTable(); renderMSPTable();
+  setTimeout(function(){
+    var ctx=$('lbChart'); if(!ctx) return;
+    var items=S.staff.map(function(s){return{name:s.name,val:s.total||0};}).concat(S.msp.map(function(m){return{name:m.name,val:m.ann||0};})).filter(function(x){return x.val>0;}).sort(function(a,b){return b.val-a.val;}).slice(0,8);
+    if(!items.length&&S.labor>0) items=[{name:'Labor (combined)',val:S.labor}];
+    if(!items.length) return;
+    var cols=['#2a5c45','#7a4f00','#1a3a70','#9e2b2b','#1a5e38','#5a2e8a','#3a7a5c','#c4beb8'];
+    if(Charts.lb) Charts.lb.destroy();
+    Charts.lb=new Chart(ctx,{type:'doughnut',data:{labels:items.map(function(i){return i.name;}),datasets:[{data:items.map(function(i){return i.val;}),backgroundColor:items.map(function(_,i){return cols[i%cols.length];}),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#5c5954',font:{size:11},boxWidth:12}}}}});
+  },50);
+}
+function renderSalTable(){
+  var tbl=$('salTable'); if(!tbl) return;
+  var tot=gSal();
+  var t='<thead><tr><th>Name</th><th class="tr">Base</th><th class="tr">Total comp</th><th class="tr">% labor</th></tr></thead><tbody>';
+  S.staff.forEach(function(s){t+='<tr><td class="tmu">'+esc(s.name||'—')+'</td><td class="tr tm">'+fmt(s.base||0)+'</td><td class="tr tm">'+fmt(s.total||0)+'</td><td class="tr tm">'+(tot?Math.round((s.total||0)/tot*100)+'%':'—')+'</td></tr>';});
+  if(S.staff.length) t+='<tr class="ttot"><td>Total</td><td></td><td class="tr tm">'+fmt(tot)+'</td><td></td></tr>';
+  tbl.innerHTML=t+'</tbody>';
+}
+function renderMSPTable(){
+  var tbl=$('mspTable'); if(!tbl) return;
+  var tot=gMsp();
+  var t='<thead><tr><th>Resource</th><th class="tr">Hrs/mo</th><th class="tr">Rate</th><th class="tr">Annual</th><th class="tr">% MSP</th></tr></thead><tbody>';
+  S.msp.forEach(function(m){
+    var tag=tot&&m.ann/tot>.3?'<span class="tag tag-top">top</span>':'';
+    t+='<tr><td class="tmu">'+esc(m.name||'—')+tag+'</td><td class="tr tm">'+(m.hrs>0?m.hrs:'—')+'</td><td class="tr tm">'+(m.rate>0?'$'+m.rate.toFixed(2):'—')+'</td><td class="tr tm">'+fmt(m.ann)+'</td><td class="tr tm">'+(tot?Math.round(m.ann/tot*100)+'%':'—')+'</td></tr>';
+  });
+  if(S.msp.length) t+='<tr class="ttot"><td>Total</td><td></td><td></td><td class="tr tm">'+fmt(tot)+'</td><td></td></tr>';
+  tbl.innerHTML=t+'</tbody>';
+}
+function addStaff(){S.staff.push({name:'New Person',base:0,total:0});renderLabor();}
+function addMSP(){S.msp.push({name:'New Contractor',hrs:0,rate:0,ann:0});renderLabor();}
+
+// ── TAX TOOL ──────────────────────────────────────────────────────
+function renderTax(){
+  var el=$('tp-tax'); if(!el) return;
+  var profit=S.revenue-(S.cogs+S.labor+S.opex);
+  var other=S.otherIncome||0, totalInc=profit+other;
+  var seTax=Math.max(0,profit*0.9235*0.153), seDeduct=seTax/2;
+  var stdDed=S.filingStatus==='married_joint'?29200:14600;
+  var taxable=Math.max(0,totalInc-seDeduct-stdDed);
+  var brackets=S.filingStatus==='married_joint'?[[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35],[1e9,.37]]:[[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[609350,.35],[1e9,.37]];
+  var fedTax=0,rem=taxable,prev=0;
+  brackets.forEach(function(b){var chunk=Math.min(rem,b[0]-prev);fedTax+=chunk*b[1];rem-=chunk;prev=b[0];if(rem<=0)return;});
+  var stateTax=Math.max(0,profit*(S.stateRate||5)/100);
+  var total=fedTax+seTax+stateTax, qtr=total/4;
+  var paid=S.ytdTaxPaid||0, owed=total-paid;
+  var eff=totalInc>0?total/totalInc:0;
+
+  el.innerHTML='<div class="sec">Tax estimate — based on your P&L profit</div>'+
+    '<div class="mrow4"><div class="mc cw"><div class="ml">Annual tax liability</div><div class="mv va">'+fmt(total)+'</div><div class="ms">Federal + SE + State</div></div>'+
+    '<div class="mc cw"><div class="ml">Quarterly payment</div><div class="mv va">'+fmt(qtr)+'</div><div class="ms">Every 3 months</div></div>'+
+    '<div class="mc cw"><div class="ml">Effective tax rate</div><div class="mv va">'+pc(eff)+'</div><div class="ms">Set aside this % of profit</div></div>'+
+    '<div class="mc '+(owed>0?'cr':'cg')+'"><div class="ml">'+(owed>0?'Still owed':'Overpaid')+'</div><div class="mv '+(owed>0?'vr':'vg')+'">'+fmt(Math.abs(owed))+'</div><div class="ms">After '+fmt(paid)+' paid</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">Tax inputs</div>'+
+    '<div class="ig"><label>Business structure</label><select id="txBizType" oninput="S.bizType=this.value;renderTax()" style="font-family:var(--sans)">'+
+      '<option value="sole_prop" '+((!S.bizType||S.bizType==='sole_prop')?'selected':'')+'>Sole Proprietor / Single-Member LLC</option>'+
+      '<option value="s_corp" '+(S.bizType==='s_corp'?'selected':'')+'>S-Corporation</option>'+
+      '<option value="c_corp" '+(S.bizType==='c_corp'?'selected':'')+'>C-Corporation</option>'+
+      '<option value="partnership" '+(S.bizType==='partnership'?'selected':'')+'>Partnership / Multi-Member LLC</option>'+
+    '</select></div>'+
+    '<div class="ig"><label>Filing status</label><select id="txStatus" oninput="S.filingStatus=this.value;renderTax()" style="font-family:var(--sans)"><option value="single" '+(S.filingStatus==='single'?'selected':'')+'>Single</option><option value="married_joint" '+(S.filingStatus==='married_joint'?'selected':'')+'>Married Filing Jointly</option><option value="hoh" '+(S.filingStatus==='hoh'?'selected':'')+'>Head of Household</option></select></div>'+
+    '<div class="ig"><label>State</label><select id="txState" oninput="S.stateCode=this.value;S.stateRate=STATE_TAXES[this.value]?STATE_TAXES[this.value].rate:0;renderTax()" style="font-family:var(--sans)">'+stateOptions(S.stateCode||'TX')+'</select></div>'+
+    '<div class="ig"><label>Other personal income ($)</label><input type="number" value="'+(S.otherIncome||0)+'" oninput="S.otherIncome=+this.value;renderTax()"></div>'+
+    '<div class="ig"><label>Tax payments made this year ($)</label><input type="number" value="'+(S.ytdTaxPaid||0)+'" oninput="S.ytdTaxPaid=+this.value;renderTax()"></div>'+
+    '<div class="ibox warn" style="margin-top:.75rem"><div class="irow"><div class="idot"></div><span>Set aside <strong>'+pc(Math.min(.35,eff*1.1))+'</strong> of every dollar of profit immediately. Move it to a separate savings account before spending anything else.</span></div></div>'+
+    '</div><div class="panel"><div class="ptitle">Quarterly payment schedule</div>'+
+    '<table id="txTable"></table><hr>'+
+    '<div style="font-size:12px;color:var(--mut);line-height:1.8"><strong style="color:var(--txt)">Breakdown ('+(!S.bizType||S.bizType==='sole_prop'?'Sole Prop/LLC':S.bizType==='s_corp'?'S-Corp':S.bizType==='c_corp'?'C-Corp':'Partnership')+'):</strong><br>'+
+    ((!S.bizType||S.bizType==='sole_prop'||S.bizType==='partnership')?'Self-employment tax: '+fmt(seTax)+'<br>':'Payroll taxes (est.): '+fmt(seTax)+'<br>')+
+    'Federal income tax: '+fmt(fedTax)+'<br>'+
+    'State tax ('+(S.stateRate||0)+'% — '+(STATE_TAXES[S.stateCode||'TX']?STATE_TAXES[S.stateCode||'TX'].name:'your state')+'): '+fmt(stateTax)+'<br>'+
+    (S.bizType==='c_corp'?'<span style="color:var(--amb)">C-Corp: 21% flat corporate rate + dividends taxed again at personal rate (double taxation)</span><br>':'')+
+    (S.bizType==='s_corp'?'<span style="color:var(--acc)">S-Corp: Pass-through taxation. Salary portion subject to payroll tax; distributions are not. Consult a CPA for S-Corp election timing.</span><br>':'')+
+    '</div>'+
+    '</div></div>';
+
+  var qtrs=[['Q1','April 15'],['Q2','June 17'],['Q3','Sep 16'],['Q4','Jan 15']];
+  var t='<thead><tr><th>Quarter</th><th class="tr">Due</th><th class="tr">Amount</th><th class="tr">Status</th></tr></thead><tbody>';
+  qtrs.forEach(function(q,i){var cp=Math.min(paid,(i+1)*qtr),tp=cp-Math.min(paid,i*qtr),st=tp>=qtr?'✓ Paid':tp>0?'Partial':'Due';t+='<tr><td class="tmu">'+q[0]+'</td><td class="tmu">'+q[1]+'</td><td class="tr tm">'+fmt(qtr)+'</td><td class="tr '+(st.includes('✓')?'vg':st==='Partial'?'va':'vr')+'">'+st+'</td></tr>';});
+  if($('txTable')) $('txTable').innerHTML=t+'</tbody>';
+}
+
+// ── RUNWAY TOOL ───────────────────────────────────────────────────
+function renderRunway(){
+  var el=$('tp-runway'); if(!el) return;
+  var cash=S.currentCash||S.cashOnHand||Math.round(S.revenue*.08);
+  var burn=S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
+  var rev=S.revenue/12;
+  var netB=burn-rev;
+  var rwy=netB>0?cash/netB:Infinity;
+  var upPct=20/100, dnPct=20/100;
+
+  var MO=['Now','Mo 1','Mo 2','Mo 3','Mo 4','Mo 5','Mo 6','Mo 7','Mo 8','Mo 9','Mo 10','Mo 11','Mo 12'];
+  var base=[cash],best=[cash],worst=[cash];
+  for(var i=1;i<=12;i++){base.push(Math.round(Math.max(0,base[i-1]+(rev-burn))));best.push(Math.round(Math.max(0,best[i-1]+(rev*(1+upPct)-burn))));worst.push(Math.round(Math.max(0,worst[i-1]+(rev*(1-dnPct)-burn))));}
+
+  el.innerHTML='<div class="sec">Runway — auto-calculated from your P&L</div>'+
+    '<div class="mrow4"><div class="mc '+(rwy>12||rwy===Infinity?'cg':rwy>6?'cw':'cr')+'"><div class="ml">Runway (base case)</div><div class="mv '+(rwy>12||rwy===Infinity?'vg':rwy>6?'va':'vr')+'">'+(rwy===Infinity?'∞':rwy.toFixed(1)+' mo')+'</div><div class="ms">'+(rwy===Infinity?'Cash flow positive':'At current burn')+'</div></div>'+
+    '<div class="mc '+(netB<=0?'cg':'cr')+'"><div class="ml">Monthly net burn</div><div class="mv '+(netB<=0?'vg':'vr')+'">'+(netB<=0?'+':'-')+fmt(Math.abs(netB))+'</div><div class="ms">'+(netB<=0?'Cash flow positive':'Burning monthly')+'</div></div>'+
+    '<div class="mc cb"><div class="ml">Monthly expenses</div><div class="mv">'+fmt(burn)+'</div><div class="ms">COGS+Labor+OPEX ÷ 12</div></div>'+
+    '<div class="mc cb"><div class="ml">Monthly revenue</div><div class="mv">'+fmt(rev)+'</div><div class="ms">Annual ÷ 12</div></div></div>'+
+    '<div class="twocol"><div class="panel"><div class="ptitle">12-month cash projection</div><div class="psub">Base · Best (+20% rev) · Worst (−20% rev)</div><div class="cw" style="height:240px"><canvas id="rwChart"></canvas></div></div>'+
+    '<div class="panel"><div class="ptitle">Adjust runway inputs</div>'+
+    '<div class="ig"><label>Cash on hand today ($)</label><input type="number" value="'+cash+'" oninput="S.currentCash=+this.value;renderRunway()"></div>'+
+    '<div class="ig"><label>Monthly expenses ($)</label><input type="number" value="'+burn+'" oninput="S.avgMonthlyBurn=+this.value;renderRunway()"></div>'+
+    (rwy<6&&rwy>0?'<div class="ibox bad"><div class="irow"><div class="idot"></div><span><strong>Critical:</strong> '+rwy.toFixed(1)+' months of runway. Act immediately — cut expenses and accelerate collections.</span></div></div>':'')+
+    (rwy>=6&&rwy<12?'<div class="ibox warn"><div class="irow"><div class="idot"></div><span><strong>Plan now:</strong> '+rwy.toFixed(1)+' months of runway. Start the conversation before you hit 3 months.</span></div></div>':'')+
+    (rwy===Infinity?'<div class="ibox good"><div class="irow"><div class="idot"></div><span>Cash flow positive. Build your reserve to at least 6 months of expenses.</span></div></div>':'')+
+    '</div></div>';
+
+  setTimeout(function(){
+    var ctx=$('rwChart'); if(!ctx) return;
+    if(Charts.rw) Charts.rw.destroy();
+    Charts.rw=new Chart(ctx,{type:'line',data:{labels:MO,datasets:[{label:'Base',data:base,borderColor:'#2a5c45',backgroundColor:'rgba(42,92,69,.06)',fill:true,tension:.3,pointRadius:3,borderWidth:2},{label:'Best',data:best,borderColor:'#1a5e38',borderDash:[4,4],fill:false,tension:.3,pointRadius:2,borderWidth:1.5},{label:'Worst',data:worst,borderColor:'#9e2b2b',borderDash:[4,4],fill:false,tension:.3,pointRadius:2,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#5c5954',font:{size:11}}}},scales:{x:{ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return'$'+Math.round(v/1000)+'k';}},grid:{color:'#ede9e3'}}}}});
+  },50);
+}
+
+// ── AI ────────────────────────────────────────────────────────────
+function runAI(){
+  var btn=$('aiBtn'),load=$('aiLoad'),out=$('aiOut');
+  btn.disabled=true; load.classList.add('show'); out.classList.remove('show'); out.innerHTML='';
+  var a=getAdj();
+  var indContext={
+    restaurant:'Food cost % (target 28-32%), labor % (target 30-35%), prime cost target under 65%, revenue per cover, table turns per service.',
+    retail:'Gross margin % (target 40-55%), inventory turnover (target 4-8x/yr), sell-through rate, revenue per sq ft, shrinkage %.',
+    agency:'Utilization rate (target 70-80%), effective billing rate, project margin %, client concentration risk, revenue per employee.',
+    saas:'MRR growth, churn rate (target under 5%/yr), CAC payback period, LTV:CAC ratio (target 3:1+), net revenue retention, gross margin (target 70-85%).',
+    healthcare:'Collections rate (target 90%+), cost per visit, days in AR (target under 35), payer mix, overhead ratio, revenue per physician.',
+    construction:'Job cost variance, backlog months, equipment utilization, change order rate, working capital ratio, bonding capacity.',
+    realestate:'GCI per agent, transactions per month, average commission, listing-to-close ratio, cost per transaction, agent productivity.',
+    manufacturing:'OEE %, COGS as % of sales, scrap rate, inventory turns, on-time delivery %, labor efficiency ratio.',
+    fitness:'Member retention rate (target 70%+), revenue per member, cost per acquisition, attrition rate, capacity utilization %.',
+    logistics:'Revenue per mile, driver utilization %, fuel cost %, on-time delivery %, empty mile %, asset utilization.',
+    law:'Realization rate (target 85%+), collection rate, billable hours per attorney, revenue per lawyer, overhead ratio.',
+    msp:'Gross margin per account (target 30-38%), MSP contractor cost as % of revenue (target under 12%), staff allocation efficiency, contract renewal rate, cost per managed endpoint.',
+    other:'Gross margin %, net margin %, operating expense ratio, working capital cycle, cash conversion cycle.'
+  };
+  var ctx=indContext[S.industry]||indContext.other;
+  var prompt='You are a CFO advisor reviewing a '+IND.l+' business called "'+(S.bizName||'the business')+'". Benchmark context: '+ctx+'\n\nP&L (annual):\n- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString()+'\n- '+IND.tC+': $'+Math.round(S.cogs).toLocaleString()+' ('+pc(S.revenue?S.cogs/S.revenue:0)+' of revenue)\n- '+IND.tL+': $'+Math.round(S.labor).toLocaleString()+' ('+pc(S.revenue?S.labor/S.revenue:0)+' of revenue)\n- Gross margin: $'+Math.round(a.bGM).toLocaleString()+' ('+pc(a.bGMp)+') — benchmark '+pc(IND.gm)+'\n- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+'\n- Net margin: $'+Math.round(a.bNet).toLocaleString()+' ('+pc(S.revenue?a.bNet/S.revenue:0)+') — benchmark '+pc(IND.net)+'\n'+(S.staff.length?'\nStaff:\n'+S.staff.map(function(s){return'- '+s.name+': $'+Math.round(s.total||0).toLocaleString();}).join('\n'):'')+'\n\nAs a CFO: (1) 2-sentence health assessment using industry benchmarks above, (2) top 3 risks with specific numbers, (3) 3 CFO-level actions this month with exact targets. Label each section **bold header**. Direct, no filler words.'
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,system:'You are a CFO advisor for small business owners. Direct, plain language. Bold key terms with **asterisks**. Label sections with **bold headers**.',messages:[{role:'user',content:prompt}]})})
+  .then(function(r){return r.json();})
+  .then(function(d){renderAI(d.content&&d.content[0]&&d.content[0].text||'No response.',out);})
+  .catch(function(){renderAI(fallbackAI(a),out);})
+  .finally(function(){load.classList.remove('show');out.classList.add('show');btn.disabled=false;});
+}
+
+function renderAI(text,el){
+  var sections=[],cur={label:'',body:[]};
+  text.split('\n').forEach(function(line){
+    var h=line.match(/^\*\*([^*]+)\*\*[:\s]*$/);
+    if(h){if(cur.body.length||cur.label)sections.push(Object.assign({},cur));cur={label:h[1].replace(':',''),body:[]};}
+    else if(line.trim()) cur.body.push(line.trim());
+  });
+  if(cur.body.length||cur.label)sections.push(cur);
+  if(sections.length<=1&&sections[0]&&sections[0].label===''){
+    var labels=['Financial health','Key risks','Actions this month'];
+    el.innerHTML=text.split('\n\n').filter(function(p){return p.trim();}).map(function(p,i){
+      var isList=p.indexOf('\n- ')>=0||p.trim().indexOf('- ')===0;
+      var body=isList?'<ul>'+p.split('\n').filter(function(l){return l.trim();}).map(function(l){return'<li>'+l.replace(/^- /,'').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</li>';}).join('')+'</ul>':'<p>'+p.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>';
+      return'<div class="ai-sec"><div class="ai-sec-lbl">'+(labels[i]||'Analysis')+'</div><div class="ai-sec-body">'+body+'</div></div>';
+    }).join('');
+    return;
+  }
+  el.innerHTML=sections.map(function(s){
+    var isList=s.body.some(function(l){return l.indexOf('- ')===0;});
+    var body=isList?'<ul>'+s.body.map(function(l){return l.indexOf('- ')===0?'<li>'+l.slice(2).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</li>':'<p>'+l.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>';}).join('')+'</ul>':s.body.map(function(l){return'<p>'+l.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>';}).join('');
+    return'<div class="ai-sec">'+(s.label?'<div class="ai-sec-lbl">'+s.label+'</div>':'')+'<div class="ai-sec-body">'+body+'</div></div>';
+  }).join('');
+}
+
+function fallbackAI(a){
+  var gp=(a.bGMp*100).toFixed(1),np=(S.revenue?a.bNet/S.revenue*100:0).toFixed(1);
+  var t='**Financial health**\n\nGross margin at '+gp+'% is '+(a.bGMp>=IND.gm?'on target for':'below the '+pc(IND.gm)+' benchmark for')+' '+IND.l+'. Net margin is '+np+'%'+(a.bNet<0?' — running at a net loss':'')+'.';
+  var risks=[];
+  if(a.bGMp<IND.gm) risks.push('- **Gross margin below benchmark ('+gp+'% vs '+pc(IND.gm)+' target)** — pricing or cost structure needs attention.');
+  if(a.bNet<0) risks.push('- **Net loss of '+fmt(Math.abs(a.bNet))+'** — expenses exceed revenue. The Break-Even tool shows the path to profitability.');
+  if(!risks.length) risks.push('- Margins are healthy. Watch for cost creep as you grow.');
+  t+='\n\n**Key risks**\n\n'+risks.join('\n');
+  var acts=['- **Use the Pricing tool** to find the price that achieves your target margin.','- **Run the Break-Even calculator** to see exactly what revenue you need.','- **Set aside '+pc(Math.min(.32,0.25))+' of every revenue dollar** for taxes immediately.'];
+  t+='\n\n**Actions this month**\n\n'+acts.slice(0,3).join('\n');
+  return t;
+}
+
+// ── PERIOD SAVE ───────────────────────────────────────────────────
+function savePeriod(){
+  var lbl=prompt('Name this period:',(S.bizName||IND.l)+' — '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'}));
+  if(!lbl) return;
+  var a=getAdj();
+  var snap={bizName:S.bizName,industry:S.industry,period:S.period,revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex,grossMargin:a.bGM,grossMarginPct:a.bGMp,netMargin:a.bNet,staff:S.staff.slice(),msp:S.msp.slice(),notes:S.notes};
+  var h=JSON.parse(localStorage.getItem('cfov1')||'[]');
+  h.unshift({id:Date.now(),label:lbl,snap:snap});
+  if(h.length>20)h.pop();
+  localStorage.setItem('cfov1',JSON.stringify(h));
+  toast('Period saved: '+lbl);
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────
+function exportData(){
+  var h=JSON.parse(localStorage.getItem('cfov1')||'[]');
+  var data={version:1,tool:'CFOVault',exported:new Date().toISOString(),current:S,history:h,pt:PT};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='CFOVault_'+(S.bizName||'data').replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);
+  toast('Data exported');
+}
+
+function handleJSON(e){
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(data.current) Object.assign(S,data.current);
+      if(data.pt) PT=data.pt;
+      IND=INDS[S.industry]||INDS.other; IND.key=S.industry;
+      if(data.history&&data.history.length){
+        var h=JSON.parse(localStorage.getItem('cfov1')||'[]');
+        var ids=new Set(h.map(function(p){return p.id;}));
+        var merged=[].concat(data.history.filter(function(p){return!ids.has(p.id);}),h).slice(0,20);
+        localStorage.setItem('cfov1',JSON.stringify(merged));
+      }
+      $('onboard').style.display='none';
+      showStatus('ok','Data loaded: '+(S.bizName||IND.l));
+      go();
+    }catch(err){toast('Could not read file');}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+function exportPDF(){
+  window.print();
+}
+
+function resetApp(){
+  periodData={revenue:0,cogs:0,labor:0,opex:0};
+  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[]};
+  IND=INDS.other; IND.key='other'; AT='overview'; PT=[];
+  Object.values(Charts).forEach(function(ch){try{ch.destroy();}catch(e){}});Charts={};
+  $('content').classList.remove('on');
+  $('onboard').style.display='block';
+  $('parseStatus').style.display='none';
+  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(id){$(id).style.display='none';});
+  document.querySelectorAll('.ind-chip').forEach(function(c){c.classList.remove('sel');});
+  var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn');
+  if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
+  if(aiLoad){aiLoad.classList.remove('show');}
+  if(aiBtn){aiBtn.disabled=false;}
+  var insBox=$('insightBox');
+  if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
+  // Clear active client badge on reset
+  wsSetActiveBadge(null);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── WORKSPACE SYSTEM ──────────────────────────────────────────────
+// Storage schema:
+//   cfov_ws_index  = [{id, name, industry, updatedAt}]   (workspace list)
+//   cfov_ws_{id}   = {s: S, pt: PT}                      (per-client state)
+//   cfov_ws_active = id                                   (which is open)
+
+var WS_INDEX_KEY = 'cfov_ws_index';
+var WS_ACTIVE_KEY = 'cfov_ws_active';
+var wsActiveId = null;
+
+function wsGetIndex(){
+  try{ return JSON.parse(localStorage.getItem(WS_INDEX_KEY)||'[]'); }catch(e){ return []; }
+}
+function wsSetIndex(idx){ localStorage.setItem(WS_INDEX_KEY, JSON.stringify(idx)); }
+function wsGetClient(id){
+  try{ return JSON.parse(localStorage.getItem('cfov_ws_'+id)||'null'); }catch(e){ return null; }
+}
+function wsSetClient(id, data){ localStorage.setItem('cfov_ws_'+id, JSON.stringify(data)); }
+function wsDelClient(id){ localStorage.removeItem('cfov_ws_'+id); }
+
+function wsGenId(){ return 'ws_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
+
+function wsSetActiveBadge(name){
+  var badge = $('activeClientBadge');
+  if(!badge) return;
+  if(name){
+    badge.style.display='flex';
+    badge.textContent=name;
+  } else {
+    badge.style.display='none';
+    badge.textContent='';
+  }
+}
+
+// Save current S + PT into the active workspace slot
+function wsSaveActive(){
+  if(!wsActiveId) return;
+  var idx = wsGetIndex();
+  var entry = idx.find(function(w){ return w.id===wsActiveId; });
+  if(!entry) return;
+  entry.name = S.bizName || entry.name;
+  entry.industry = S.industry || entry.industry;
+  entry.updatedAt = new Date().toISOString();
+  wsSetIndex(idx);
+  wsSetClient(wsActiveId, {s: JSON.parse(JSON.stringify(S)), pt: JSON.parse(JSON.stringify(PT))});
+}
+
+function addWorkspace(){
+  var inp = $('wsNewName');
+  var name = (inp.value||'').trim();
+  if(!name){ inp.focus(); return; }
+  var id = wsGenId();
+  var idx = wsGetIndex();
+  idx.push({id:id, name:name, industry:'other', updatedAt:new Date().toISOString()});
+  wsSetIndex(idx);
+  inp.value='';
+  renderWorkspaceList();
+  // Switch to the new empty client
+  wsLoadClient(id);
+  toast('Workspace created: '+name);
+}
+
+function wsLoadClient(id){
+  // Save current state first
+  wsSaveActive();
+  // Reset app state cleanly (no visual reset — just data)
+  periodData={revenue:0,cogs:0,labor:0,opex:0};
+  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[]};
+  IND=INDS.other; IND.key='other'; AT='overview'; PT=[];
+  Object.values(Charts).forEach(function(ch){try{ch.destroy();}catch(e){}});Charts={};
+
+  var saved = wsGetClient(id);
+  wsActiveId = id;
+  localStorage.setItem(WS_ACTIVE_KEY, id);
+
+  if(saved && saved.s && saved.s.revenue>0){
+    // Client has data — load it and go straight to dashboard
+    Object.assign(S, saved.s);
+    if(saved.pt) PT = saved.pt;
+    IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+    $('onboard').style.display='none';
+    $('parseStatus').style.display='none';
+    $('content').classList.add('on');
+    ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){$(bid).style.display='block';});
+    var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
+    if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
+    if(aiLoad){aiLoad.classList.remove('show');}
+    if(aiBtn){aiBtn.disabled=false;}
+    if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
+    go();
+  } else {
+    // New client — show onboarding
+    $('content').classList.remove('on');
+    $('onboard').style.display='block';
+    $('parseStatus').style.display='none';
+    ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){$(bid).style.display='none';});
+    var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
+    if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
+    if(aiLoad){aiLoad.classList.remove('show');}
+    if(aiBtn){aiBtn.disabled=false;}
+    if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
+    document.querySelectorAll('.ind-chip').forEach(function(c){c.classList.remove('sel');});
+  }
+
+  var idx = wsGetIndex();
+  var entry = idx.find(function(w){ return w.id===id; });
+  wsSetActiveBadge(entry ? entry.name : null);
+  renderWorkspaceList();
+  closeWorkspace();
+}
+
+function wsDeleteClient(id, name, e){
+  e.stopPropagation();
+  if(!confirm('Delete workspace "'+name+'"? This cannot be undone.')) return;
+  var idx = wsGetIndex().filter(function(w){ return w.id!==id; });
+  wsSetIndex(idx);
+  wsDelClient(id);
+  if(wsActiveId===id){
+    wsActiveId=null;
+    localStorage.removeItem(WS_ACTIVE_KEY);
+    wsSetActiveBadge(null);
+    resetApp();
+  }
+  renderWorkspaceList();
+  toast('Workspace deleted');
+}
+
+function wsRenameClient(id, currentName, e){
+  e.stopPropagation();
+  var newName = prompt('Rename workspace:', currentName);
+  if(!newName||!newName.trim()) return;
+  var idx = wsGetIndex();
+  var entry = idx.find(function(w){ return w.id===id; });
+  if(!entry) return;
+  entry.name = newName.trim();
+  wsSetIndex(idx);
+  if(wsActiveId===id){
+    S.bizName = newName.trim();
+    wsSaveActive();
+    wsSetActiveBadge(newName.trim());
+  }
+  renderWorkspaceList();
+  toast('Renamed to: '+newName.trim());
+}
+
+function renderWorkspaceList(){
+  var list = $('wsList');
+  var idx = wsGetIndex();
+  if(!idx.length){
+    list.innerHTML='<div class="ws-empty">No workspaces yet.<br>Add a client above to get started.</div>';
+    return;
+  }
+  var IND_ICONS = {restaurant:'dish',retail:'shopping_bags',agency:'briefcase',saas:'laptop',healthcare:'hospital',construction:'construction',realestate:'house',manufacturing:'factory',fitness:'muscle',logistics:'truck',law:'scales',msp:'desktop',other:'chart'};
+  var EMOJIS = {restaurant:'🍽️',retail:'🛍️',agency:'💼',saas:'💻',healthcare:'🏥',construction:'🏗️',realestate:'🏠',manufacturing:'🏭',fitness:'💪',logistics:'🚛',law:'⚖️',msp:'🖥️',other:'📊'};
+  list.innerHTML = idx.slice().reverse().map(function(w){
+    var isActive = w.id===wsActiveId;
+    var saved = wsGetClient(w.id);
+    var hasData = saved && saved.s && saved.s.revenue>0;
+    var emoji = EMOJIS[w.industry]||'📊';
+    var meta = hasData ? (INDS[w.industry]||INDS.other).l : 'No data yet — click to set up';
+    var updated = w.updatedAt ? new Date(w.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    if(updated && hasData) meta = meta+' · '+updated;
+    return '<div class="ws-item'+(isActive?' active':'')+'" onclick="wsLoadClient(\''+w.id+'\')">'
+      +'<div class="ws-item-icon">'+emoji+'</div>'
+      +'<div class="ws-item-body">'
+        +'<div class="ws-item-name">'+w.name+'</div>'
+        +'<div class="ws-item-meta">'+meta+'</div>'
+      +'</div>'
+      +'<button class="ws-item-del" onclick="wsRenameClient(\''+w.id+'\',\''+w.name.replace(/'/g,"\\'")+'\',...arguments)" title="Rename">✎</button>'
+      +'<button class="ws-item-del" onclick="wsDeleteClient(\''+w.id+'\',\''+w.name.replace(/'/g,"\\'")+'\',...arguments)" title="Delete">✕</button>'
+    +'</div>';
+  }).join('');
+}
+
+function openWorkspace(){
+  // Auto-save current state before opening sidebar
+  wsSaveActive();
+  renderWorkspaceList();
+  $('wsOverlay').classList.add('on');
+  $('wsSidebar').classList.add('on');
+  setTimeout(function(){ var inp=$('wsNewName'); if(inp) inp.focus(); },250);
+}
+
+function closeWorkspace(){
+  $('wsOverlay').classList.remove('on');
+  $('wsSidebar').classList.remove('on');
+}
+
+// On page load: show Clients button always, restore active workspace if any
+window.addEventListener('DOMContentLoaded', function(){
+  var btnC = $('btnClients');
+  if(btnC) btnC.style.display='flex';
+
+  var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
+  if(savedActiveId){
+    var idx = wsGetIndex();
+    var entry = idx.find(function(w){ return w.id===savedActiveId; });
+    if(entry){
+      wsActiveId = savedActiveId;
+      var saved = wsGetClient(savedActiveId);
+      if(saved && saved.s && saved.s.revenue>0){
+        Object.assign(S, saved.s);
+        if(saved.pt) PT = saved.pt;
+        IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+        wsSetActiveBadge(entry.name);
+      }
+    }
+  }
+});
+
+// Auto-save active workspace when user imports or loads demo data
+// Patch go() to also save state after render
+var _origGo = go;
+go = function(){
+  _origGo();
+  // After go() runs, save the current state to the active workspace
+  setTimeout(function(){ wsSaveActive(); }, 200);
+};
+</script>
+</body>
+</html>
