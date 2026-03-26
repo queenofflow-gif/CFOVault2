@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -199,10 +200,62 @@ footer strong{color:var(--acc)}
 .ws-footer{padding:.85rem 1.25rem;border-top:1px solid var(--bdr);font-size:11px;color:var(--sub);line-height:1.5}
 /* active client badge in header */
 #activeClientBadge{display:none;align-items:center;gap:6px;background:var(--accL);border:1px solid #aecfbd;border-radius:7px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── AUTH ── */
+#authOverlay{display:none;position:fixed;inset:0;background:rgba(15,20,15,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+#authOverlay.on{display:flex}
+#authBox{background:var(--surf);border-radius:16px;padding:2.25rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-logo{font-family:var(--serif);font-size:22px;color:var(--acc);font-weight:600;text-align:center;margin-bottom:.2rem}
+.auth-sub{font-size:12px;color:var(--sub);text-align:center;margin-bottom:1.5rem}
+.auth-tabs{display:flex;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-bottom:1.25rem}
+.auth-tab{flex:1;padding:7px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--mut);font-family:var(--sans)}
+.auth-tab.on{background:var(--acc);color:#fff}
+.auth-field{margin-bottom:.85rem}
+.auth-field label{display:block;font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-weight:500}
+.auth-field input{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-family:var(--sans);font-size:13px;padding:9px 11px;outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--acc)}
+.auth-submit{width:100%;background:var(--acc);border:none;color:#fff;border-radius:8px;padding:10px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;margin-top:.5rem;transition:background .15s}
+.auth-submit:hover{background:var(--accM)}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-err{background:var(--redL);border:1px solid #e8b0b0;color:var(--red);border-radius:7px;padding:.6rem .85rem;font-size:12px;margin-bottom:.75rem;display:none}
+.auth-err.on{display:block}
+.auth-ok{background:var(--accL);border:1px solid #aecfbd;color:var(--acc);border-radius:7px;padding:.6rem .85rem;font-size:12px;margin-bottom:.75rem;display:none}
+.auth-ok.on{display:block}
+.auth-footer{font-size:11px;color:var(--sub);text-align:center;margin-top:1rem}
+/* header auth controls */
+#authUserArea{display:none;align-items:center;gap:8px}
+#authUserEmail{font-size:11px;color:var(--sub);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btnLogout{background:var(--surf2);border:1px solid var(--bdrS);color:var(--mut);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans)}
+#btnLogout:hover{border-color:var(--red);color:var(--red)}
+#btnLogin{background:var(--acc);border:1px solid var(--acc);color:#fff;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:var(--sans);font-weight:500}
+#btnLogin:hover{background:var(--accM)}
+/* gate banner */
+#gateBanner{display:none;background:var(--accL);border:1px solid #aecfbd;border-radius:9px;padding:.75rem 1.1rem;margin-bottom:1.25rem;font-size:13px;color:var(--accD);align-items:center;gap:10px}
+#gateBanner.on{display:flex}
+#gateBanner button{background:var(--acc);border:none;color:#fff;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay">
+  <div id="authBox">
+    <div class="auth-logo">CFO Vault</div>
+    <div class="auth-sub">Financial clarity without the CFO price tag</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="tabLogin" onclick="authSwitch('login')">Sign in</button>
+      <button class="auth-tab" id="tabSignup" onclick="authSwitch('signup')">Create account</button>
+    </div>
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-ok" id="authOk"></div>
+    <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')authSubmit()"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="authPass" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')authSubmit()"></div>
+    <button class="auth-submit" id="authSubmitBtn" onclick="authSubmit()">Sign in</button>
+    <div class="auth-footer">By continuing you agree to use this tool responsibly.<br>Your data stays in your browser — we never store your financials.</div>
+  </div>
+</div>
+
 
 <!-- WORKSPACE SIDEBAR -->
 <div id="wsOverlay" onclick="closeWorkspace()"></div>
@@ -224,6 +277,8 @@ footer strong{color:var(--acc)}
   <span class="ltag">CFO In Your Pocket</span>
   <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
   <div id="activeClientBadge"></div>
+  <div id="authUserArea"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
+  <button id="btnLogin" onclick="showAuth('login')" style="display:none">Sign in</button>
   <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
   <button class="hbtn" id="btnExport" onclick="exportData()">&#x1F4E4; Export data</button>
   <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()">&#x1F4E5; Load saved</button>
@@ -234,6 +289,11 @@ footer strong{color:var(--acc)}
 <input type="file" id="jFi" accept=".json" style="display:none">
 <main>
 
+<!-- GATE BANNER -->
+<div id="gateBanner">
+  <span>&#x1F512; Sign in or create a free account to import your P&L and use all tools. The demo is available without an account.</span>
+  <button onclick="showAuth('login')">Sign in / Sign up</button>
+</div>
 <!-- ONBOARD -->
 <div id="onboard">
   <div class="ob-hero">
@@ -244,7 +304,7 @@ footer strong{color:var(--acc)}
     <div class="ob-ind-label">Select your industry</div>
     <div class="ind-grid" id="indGrid"></div>
     <div class="ob-actions">
-      <button class="btn btnP" onclick="document.getElementById('xlFi').click()">📊 Import P&amp;L from Excel</button>
+      <button class="btn btnP" onclick="authGuard(function(){document.getElementById('xlFi').click();})">📊 Import P&amp;L from Excel</button>
       <button class="btn" onclick="loadDemo()">Try with sample data</button>
       <button class="btn" onclick="document.getElementById('jFi').click()">📥 Load saved data</button>
       <span class="ob-notice">Your data never leaves your device</span>
@@ -278,7 +338,7 @@ footer strong{color:var(--acc)}
         <div class="ai-icon">✦</div>
         <div><div class="ai-title">AI financial advisor</div><div class="ai-sub" id="aiSub">Plain-language analysis with prioritized action items</div></div>
       </div>
-      <button class="ai-btn" id="aiBtn" onclick="runAI()">Analyze with AI</button>
+      <button class="ai-btn" id="aiBtn" onclick="authGuard(runAI)">Analyze with AI</button>
     </div>
     <div class="ai-load" id="aiLoad"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Analyzing your financials...</span></div>
     <div class="ai-out" id="aiOut"></div>
@@ -481,6 +541,39 @@ h4{font-size:13px;font-weight:600;color:var(--acc);text-transform:uppercase;lett
 /* ── PRINT / MISC ── */
 @media(max-width:680px){.feat-grid,.toc-grid{grid-template-columns:1fr}.mdb-cards{grid-template-columns:repeat(3,1fr)}}
 @media print{.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* ── AUTH ── */
+#authOverlay{display:none;position:fixed;inset:0;background:rgba(15,20,15,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+#authOverlay.on{display:flex}
+#authBox{background:var(--surf);border-radius:16px;padding:2.25rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-logo{font-family:var(--serif);font-size:22px;color:var(--acc);font-weight:600;text-align:center;margin-bottom:.2rem}
+.auth-sub{font-size:12px;color:var(--sub);text-align:center;margin-bottom:1.5rem}
+.auth-tabs{display:flex;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-bottom:1.25rem}
+.auth-tab{flex:1;padding:7px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--mut);font-family:var(--sans)}
+.auth-tab.on{background:var(--acc);color:#fff}
+.auth-field{margin-bottom:.85rem}
+.auth-field label{display:block;font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-weight:500}
+.auth-field input{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-family:var(--sans);font-size:13px;padding:9px 11px;outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--acc)}
+.auth-submit{width:100%;background:var(--acc);border:none;color:#fff;border-radius:8px;padding:10px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;margin-top:.5rem;transition:background .15s}
+.auth-submit:hover{background:var(--accM)}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-err{background:var(--redL);border:1px solid #e8b0b0;color:var(--red);border-radius:7px;padding:.6rem .85rem;font-size:12px;margin-bottom:.75rem;display:none}
+.auth-err.on{display:block}
+.auth-ok{background:var(--accL);border:1px solid #aecfbd;color:var(--acc);border-radius:7px;padding:.6rem .85rem;font-size:12px;margin-bottom:.75rem;display:none}
+.auth-ok.on{display:block}
+.auth-footer{font-size:11px;color:var(--sub);text-align:center;margin-top:1rem}
+/* header auth controls */
+#authUserArea{display:none;align-items:center;gap:8px}
+#authUserEmail{font-size:11px;color:var(--sub);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btnLogout{background:var(--surf2);border:1px solid var(--bdrS);color:var(--mut);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans)}
+#btnLogout:hover{border-color:var(--red);color:var(--red)}
+#btnLogin{background:var(--acc);border:1px solid var(--acc);color:#fff;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:var(--sans);font-weight:500}
+#btnLogin:hover{background:var(--accM)}
+/* gate banner */
+#gateBanner{display:none;background:var(--accL);border:1px solid #aecfbd;border-radius:9px;padding:.75rem 1.1rem;margin-bottom:1.25rem;font-size:13px;color:var(--accD);align-items:center;gap:10px}
+#gateBanner.on{display:flex}
+#gateBanner button{background:var(--acc);border:none;color:#fff;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -2742,6 +2835,128 @@ go = function(){
   // After go() runs, save the current state to the active workspace
   setTimeout(function(){ wsSaveActive(); }, 200);
 };
+
+// ── SUPABASE AUTH ─────────────────────────────────────────────────
+var SUPA_URL = "https://rsekeninjqheabwppcrt.supabase.co";
+var SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzZWtlbmluanFoZWFid3BwY3J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDEzNjcsImV4cCI6MjA5MDExNzM2N30._SfCJX6WyGXFRJ11HwlE0ziL4XD2gDGVbKEwn7zV-3M";
+var supaClient = null;
+var currentUser = null;
+var authMode = 'login';
+
+function initSupabase(){
+  try{
+    supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+    supaClient.auth.getSession().then(function(res){
+      var session = res.data && res.data.session;
+      if(session && session.user){ setUser(session.user); }
+      else{ setUser(null); }
+    });
+    supaClient.auth.onAuthStateChange(function(event, session){
+      if(session && session.user){ setUser(session.user); }
+      else{ setUser(null); }
+    });
+  } catch(e){ console.warn('Supabase init failed:', e); }
+}
+
+function setUser(user){
+  currentUser = user;
+  var area = $('authUserArea');
+  var btnL = $('btnLogin');
+  var emailEl = $('authUserEmail');
+  var banner = $('gateBanner');
+  if(user){
+    if(area) area.style.display='flex';
+    if(btnL) btnL.style.display='none';
+    if(emailEl) emailEl.textContent = user.email;
+    if(banner) banner.classList.remove('on');
+    // Show clients button if logged in
+    var btnC = $('btnClients');
+    if(btnC) btnC.style.display='flex';
+  } else {
+    if(area) area.style.display='none';
+    if(btnL) btnL.style.display='block';
+    if(banner) banner.classList.add('on');
+  }
+}
+
+function authGuard(fn){
+  if(currentUser){ fn(); return; }
+  showAuth('login');
+}
+
+function showAuth(mode){
+  authMode = mode || 'login';
+  authSwitch(authMode);
+  $('authOverlay').classList.add('on');
+  setTimeout(function(){ var el=$('authEmail'); if(el) el.focus(); }, 200);
+}
+
+function authSwitch(mode){
+  authMode = mode;
+  var tL=$('tabLogin'), tS=$('tabSignup'), btn=$('authSubmitBtn');
+  if(tL) tL.classList.toggle('on', mode==='login');
+  if(tS) tS.classList.toggle('on', mode==='signup');
+  if(btn) btn.textContent = mode==='login' ? 'Sign in' : 'Create account';
+  var err=$('authErr'), ok=$('authOk');
+  if(err){ err.classList.remove('on'); err.textContent=''; }
+  if(ok){ ok.classList.remove('on'); ok.textContent=''; }
+}
+
+function authSubmit(){
+  if(!supaClient){ toast('Auth not available'); return; }
+  var email = ($('authEmail').value||'').trim();
+  var pass  = ($('authPass').value||'').trim();
+  var err   = $('authErr');
+  var ok    = $('authOk');
+  var btn   = $('authSubmitBtn');
+  err.classList.remove('on'); ok.classList.remove('on');
+  if(!email || !pass){ err.textContent='Please enter your email and password.'; err.classList.add('on'); return; }
+  if(pass.length < 6){ err.textContent='Password must be at least 6 characters.'; err.classList.add('on'); return; }
+  btn.disabled = true;
+  btn.textContent = authMode==='login' ? 'Signing in...' : 'Creating account...';
+  var fn = authMode==='login'
+    ? supaClient.auth.signInWithPassword({email:email, password:pass})
+    : supaClient.auth.signUp({email:email, password:pass});
+  fn.then(function(res){
+    btn.disabled = false;
+    btn.textContent = authMode==='login' ? 'Sign in' : 'Create account';
+    if(res.error){
+      err.textContent = res.error.message;
+      err.classList.add('on');
+    } else if(authMode==='signup' && res.data && res.data.user && !res.data.session){
+      ok.textContent = 'Account created! Check your email to confirm, then sign in.';
+      ok.classList.add('on');
+      authSwitch('login');
+    } else {
+      $('authOverlay').classList.remove('on');
+      $('authEmail').value='';
+      $('authPass').value='';
+      toast('Welcome to CFO Vault!');
+    }
+  }).catch(function(e){
+    btn.disabled = false;
+    btn.textContent = authMode==='login' ? 'Sign in' : 'Create account';
+    err.textContent = 'Something went wrong. Please try again.';
+    err.classList.add('on');
+  });
+}
+
+function authSignOut(){
+  if(!supaClient) return;
+  supaClient.auth.signOut().then(function(){
+    currentUser = null;
+    setUser(null);
+    toast('Signed out');
+  });
+}
+
+// Close overlay on background click
+document.addEventListener('DOMContentLoaded', function(){
+  var overlay = $('authOverlay');
+  if(overlay) overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.classList.remove('on'); });
+  initSupabase();
+});
+
 </script>
 </body>
 </html>
