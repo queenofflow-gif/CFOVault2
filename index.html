@@ -2477,7 +2477,7 @@ function updateTax(){
     '<div class="mc cw"><div class="ml">Annual tax liability</div><div class="mv va">'+fmt(total)+'</div><div class="ms">Federal + SE + State</div></div>'+
     '<div class="mc cw"><div class="ml">Quarterly payment</div><div class="mv va">'+fmt(qtr)+'</div><div class="ms">Every 3 months</div></div>'+
     '<div class="mc cw"><div class="ml">Effective tax rate</div><div class="mv va">'+pc(eff)+'</div><div class="ms">Set aside this % of profit</div></div>'+
-    '<div class="mc '+(owed>0?'cr':'cg')+'"><div class="ml">'+(owed>0?'Still owed':'Overpaid')+'</div><div class="mv '+(owed>0?'vr':'vg')+"'>"'+fmt(Math.abs(owed))+'</div><div class="ms">After '+fmt(paid)+' paid</div></div></div>';
+    '<div class="mc '+(owed>0?'cr':'cg')+'"><div class="ml">'+(owed>0?'Still owed':'Overpaid')+'</div><div class="mv '+(owed>0?'vr':'vg')+'">'+fmt(Math.abs(owed))+'</div><div class="ms">After '+fmt(paid)+' paid</div></div></div>';
   var adv=$("txAdvice");
   if(adv) adv.innerHTML='<div class="ibox warn"><div class="irow"><div class="idot"></div><span>Set aside <strong>'+pc(Math.min(.35,eff*1.1))+'</strong> of every dollar of profit immediately.</span></div></div>';
   var qtrs=[['Q1','April 15'],['Q2','June 17'],['Q3','Sep 16'],['Q4','Jan 15']];
