@@ -269,7 +269,7 @@ footer strong{color:var(--acc)}
     <button onclick="addWorkspace()">Add</button>
   </div>
   <div class="ws-list" id="wsList"></div>
-  <div class="ws-footer">Data stays in your browser. Export a client's data to back it up.</div>
+  <div class="ws-footer">Data synced to your account. <span id="wsSyncStatus" style="font-weight:500"></span></div>
 </div>
 
 <header>
@@ -2671,25 +2671,123 @@ function resetApp(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ── WORKSPACE SYSTEM ──────────────────────────────────────────────
-// Storage schema:
-//   cfov_ws_index  = [{id, name, industry, updatedAt}]   (workspace list)
-//   cfov_ws_{id}   = {s: S, pt: PT}                      (per-client state)
-//   cfov_ws_active = id                                   (which is open)
+// ── WORKSPACE SYSTEM (Cloud-synced via Supabase) ──────────────────
+// Primary store: Supabase `workspaces` table (keyed by user_id)
+// Local cache:   localStorage (fast reads, offline fallback)
+//   cfov_ws_index  = [{id, name, industry, updatedAt}]
+//   cfov_ws_{id}   = {s: S, pt: PT}
+//   cfov_ws_active = id
 
 var WS_INDEX_KEY = 'cfov_ws_index';
 var WS_ACTIVE_KEY = 'cfov_ws_active';
 var wsActiveId = null;
+var wsSyncing = false;
 
+// ── LOCAL CACHE (always fast, used for reads) ─────────────────────
 function wsGetIndex(){
   try{ return JSON.parse(localStorage.getItem(WS_INDEX_KEY)||'[]'); }catch(e){ return []; }
 }
-function wsSetIndex(idx){ localStorage.setItem(WS_INDEX_KEY, JSON.stringify(idx)); }
+function wsSetIndexLocal(idx){ localStorage.setItem(WS_INDEX_KEY, JSON.stringify(idx)); }
 function wsGetClient(id){
   try{ return JSON.parse(localStorage.getItem('cfov_ws_'+id)||'null'); }catch(e){ return null; }
 }
-function wsSetClient(id, data){ localStorage.setItem('cfov_ws_'+id, JSON.stringify(data)); }
-function wsDelClient(id){ localStorage.removeItem('cfov_ws_'+id); }
+function wsSetClientLocal(id, data){ localStorage.setItem('cfov_ws_'+id, JSON.stringify(data)); }
+function wsDelClientLocal(id){ localStorage.removeItem('cfov_ws_'+id); }
+
+function wsGenId(){ return 'ws_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
+
+// ── SUPABASE SYNC HELPERS ─────────────────────────────────────────
+function wsDb(){
+  // Returns the supabase table reference, or null if not ready
+  if(!supaClient || !currentUser) return null;
+  return supaClient.from('workspaces');
+}
+
+// Upsert one workspace row to Supabase (fire and forget — cache already updated)
+function wsCloudSave(id, name, industry, updatedAt, data){
+  var db = wsDb(); if(!db) return;
+  db.upsert({
+    id: id,
+    user_id: currentUser.id,
+    name: name,
+    industry: industry||'other',
+    updated_at: updatedAt||new Date().toISOString(),
+    data: data
+  }, {onConflict:'id,user_id'})
+  .then(function(res){
+    if(res.error) console.warn('ws cloud save error:', res.error.message);
+  });
+}
+
+// Delete one workspace row from Supabase
+function wsCloudDelete(id){
+  var db = wsDb(); if(!db) return;
+  db.delete().eq('id', id).eq('user_id', currentUser.id)
+  .then(function(res){
+    if(res.error) console.warn('ws cloud delete error:', res.error.message);
+  });
+}
+
+// Pull all workspaces from Supabase and merge into local cache
+function wsCloudPull(callback){
+  var db = wsDb();
+  if(!db){ if(callback) callback(false); return; }
+  wsSyncing = true;
+  wsShowSyncStatus('syncing');
+  db.select('id,name,industry,updated_at,data')
+    .eq('user_id', currentUser.id)
+    .order('updated_at', {ascending:false})
+  .then(function(res){
+    wsSyncing = false;
+    if(res.error){ console.warn('ws cloud pull error:', res.error.message); wsShowSyncStatus('error'); if(callback) callback(false); return; }
+    var rows = res.data||[];
+    // Build index from cloud rows
+    var cloudIdx = rows.map(function(r){
+      return {id:r.id, name:r.name, industry:r.industry||'other', updatedAt:r.updated_at};
+    });
+    // Merge: cloud is source of truth, but keep local entries not yet pushed
+    var localIdx = wsGetIndex();
+    var cloudIds = new Set(cloudIdx.map(function(w){return w.id;}));
+    var localOnly = localIdx.filter(function(w){return !cloudIds.has(w.id);});
+    var mergedIdx = cloudIdx.concat(localOnly);
+    wsSetIndexLocal(mergedIdx);
+    // Cache each workspace's data locally
+    rows.forEach(function(r){
+      if(r.data) wsSetClientLocal(r.id, r.data);
+    });
+    wsShowSyncStatus('ok');
+    if(callback) callback(true);
+  });
+}
+
+function wsShowSyncStatus(state){
+  var el = $('wsSyncStatus'); if(!el) return;
+  if(state==='syncing'){ el.textContent='Syncing...'; el.style.color='var(--sub)'; }
+  else if(state==='ok'){ el.textContent='Synced'; el.style.color='var(--grn)'; setTimeout(function(){el.textContent='';},2000); }
+  else if(state==='error'){ el.textContent='Sync error'; el.style.color='var(--red)'; }
+}
+
+// ── PUBLIC API (replaces old wsSetIndex / wsSetClient / wsDelClient) ──
+
+function wsSetIndex(idx){
+  // Write to local cache — Supabase rows are updated individually via wsCloudSave
+  wsSetIndexLocal(idx);
+}
+
+function wsSetClient(id, data){
+  wsSetClientLocal(id, data);
+  // Find name/industry from index for the cloud row
+  var idx = wsGetIndex();
+  var entry = idx.find(function(w){return w.id===id;});
+  if(entry){
+    wsCloudSave(id, entry.name, entry.industry, entry.updatedAt, data);
+  }
+}
+
+function wsDelClient(id){
+  wsDelClientLocal(id);
+  wsCloudDelete(id);
+}
 
 function wsGenId(){ return 'ws_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
 
@@ -2714,8 +2812,11 @@ function wsSaveActive(){
   entry.name = S.bizName || entry.name;
   entry.industry = S.industry || entry.industry;
   entry.updatedAt = new Date().toISOString();
-  wsSetIndex(idx);
-  wsSetClient(wsActiveId, {s: JSON.parse(JSON.stringify(S)), pt: JSON.parse(JSON.stringify(PT))});
+  wsSetIndexLocal(idx);
+  var data = {s: JSON.parse(JSON.stringify(S)), pt: JSON.parse(JSON.stringify(PT))};
+  wsSetClientLocal(wsActiveId, data);
+  // Sync to cloud
+  wsCloudSave(wsActiveId, entry.name, entry.industry, entry.updatedAt, data);
 }
 
 function addWorkspace(){
@@ -2723,12 +2824,14 @@ function addWorkspace(){
   var name = (inp.value||'').trim();
   if(!name){ inp.focus(); return; }
   var id = wsGenId();
+  var now = new Date().toISOString();
   var idx = wsGetIndex();
-  idx.push({id:id, name:name, industry:'other', updatedAt:new Date().toISOString()});
-  wsSetIndex(idx);
+  idx.push({id:id, name:name, industry:'other', updatedAt:now});
+  wsSetIndexLocal(idx);
+  // Push empty workspace row to cloud immediately so it exists on other devices
+  wsCloudSave(id, name, 'other', now, null);
   inp.value='';
   renderWorkspaceList();
-  // Switch to the new empty client
   wsLoadClient(id);
   toast('Workspace created: '+name);
 }
@@ -2806,10 +2909,13 @@ function wsRenameClient(id, currentName, e){
   var entry = idx.find(function(w){ return w.id===id; });
   if(!entry) return;
   entry.name = newName.trim();
-  wsSetIndex(idx);
+  entry.updatedAt = new Date().toISOString();
+  wsSetIndexLocal(idx);
+  // Push updated name to cloud
+  var data = wsGetClient(id);
+  wsCloudSave(id, entry.name, entry.industry, entry.updatedAt, data);
   if(wsActiveId===id){
     S.bizName = newName.trim();
-    wsSaveActive();
     wsSetActiveBadge(newName.trim());
   }
   renderWorkspaceList();
@@ -2859,26 +2965,10 @@ function closeWorkspace(){
   $('wsSidebar').classList.remove('on');
 }
 
-// On page load: show Clients button always, restore active workspace if any
+// On page load: show Clients button, Supabase init will call setUser which handles workspace restore
 window.addEventListener('DOMContentLoaded', function(){
   var btnC = $('btnClients');
   if(btnC) btnC.style.display='flex';
-
-  var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
-  if(savedActiveId){
-    var idx = wsGetIndex();
-    var entry = idx.find(function(w){ return w.id===savedActiveId; });
-    if(entry){
-      wsActiveId = savedActiveId;
-      var saved = wsGetClient(savedActiveId);
-      if(saved && saved.s && saved.s.revenue>0){
-        Object.assign(S, saved.s);
-        if(saved.pt) PT = saved.pt;
-        IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
-        wsSetActiveBadge(entry.name);
-      }
-    }
-  }
 });
 
 // Auto-save active workspace when user imports or loads demo data
@@ -2923,13 +3013,37 @@ function setUser(user){
     if(btnL) btnL.style.display='none';
     if(emailEl) emailEl.textContent = user.email;
     if(banner) banner.classList.remove('on');
-    // Show clients button if logged in
     var btnC = $('btnClients');
     if(btnC) btnC.style.display='flex';
+    // Pull workspaces from cloud on login, then restore active
+    wsCloudPull(function(ok){
+      renderWorkspaceList();
+      // Restore active workspace if one was previously open
+      var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
+      if(savedActiveId){
+        var idx = wsGetIndex();
+        var entry = idx.find(function(w){ return w.id===savedActiveId; });
+        if(entry){
+          wsActiveId = savedActiveId;
+          var saved = wsGetClient(savedActiveId);
+          if(saved && saved.s && saved.s.revenue>0){
+            Object.assign(S, saved.s);
+            if(saved.pt) PT = saved.pt;
+            IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+            wsSetActiveBadge(entry.name);
+            go();
+          }
+        }
+      }
+    });
   } else {
     if(area) area.style.display='none';
     if(btnL) btnL.style.display='block';
     if(banner) banner.classList.add('on');
+    // Clear workspace state on sign out
+    wsActiveId = null;
+    localStorage.removeItem(WS_ACTIVE_KEY);
+    wsSetActiveBadge(null);
   }
 }
 
