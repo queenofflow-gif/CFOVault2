@@ -2257,27 +2257,43 @@ function renderCashFlow(){
 // ── BREAK-EVEN TOOL ───────────────────────────────────────────────
 function renderBreakEven(){
   var el=$('tp-breakeven'); if(!el) return;
+  if(!$('beResults')){
+    el.innerHTML='<div class="sec">Break-even — auto-calculated from your P&L</div>'+
+      '<div id="beResults"></div>'+
+      '<div class="twocol"><div class="panel"><div class="ptitle">Break-even chart</div><div class="cw" style="height:240px"><canvas id="beChart"></canvas></div></div>'+
+      '<div class="panel"><div class="ptitle">Adjust inputs</div><div class="psub">Override auto-calculated values</div>'+
+      '<div class="ig"><label>Monthly fixed costs ($)</label><input type="number" id="beFc" oninput="S.fixedCosts=+this.value;updateBreakEven()"></div>'+
+      '<div class="ig"><label>Variable cost % of revenue</label><input type="number" id="beVp" min="0" max="99" oninput="S.variableCostPct=+this.value;updateBreakEven()"></div>'+
+      '<div class="ig"><label>Price per unit / per sale ($)</label><input type="number" id="bePu" oninput="S.pricePerUnit=+this.value;updateBreakEven()"></div>'+
+      '<div id="beInsight"></div>'+
+      '</div></div>';
+  }
   var fc=S.fixedCosts||Math.round(S.opex/12);
   var vp=S.variableCostPct||Math.round(S.cogs/Math.max(S.revenue,1)*100*.45);
   var pu=S.pricePerUnit||Math.round(S.revenue/12);
+  if(document.activeElement!=$('beFc')&&$('beFc')) $('beFc').value=fc;
+  if(document.activeElement!=$('beVp')&&$('beVp')) $('beVp').value=vp;
+  if(document.activeElement!=$('bePu')&&$('bePu')) $('bePu').value=pu;
+  updateBreakEven();
+}
+function updateBreakEven(){
+  var fc=S.fixedCosts||Math.round(S.opex/12);
+  var vp=S.variableCostPct||Math.round(S.cogs/Math.max(S.revenue,1)*100*.45);
+  var pu=S.pricePerUnit||Math.round(S.revenue/12);
+  if($('beFc')&&document.activeElement==$('beFc')) fc=+$('beFc').value||fc;
+  if($('beVp')&&document.activeElement==$('beVp')) vp=+$('beVp').value||vp;
+  if($('bePu')&&document.activeElement==$('bePu')) pu=+$('bePu').value||pu;
   var cm=pu*(1-vp/100);
   var beU=cm>0?Math.ceil(fc/cm):0, beR=beU*pu;
   var moR=S.revenue/12, above=moR-beR;
-
-  el.innerHTML='<div class="sec">Break-even — auto-calculated from your P&L</div>'+
-    '<div class="mrow4"><div class="mc cw"><div class="ml">Monthly fixed costs</div><div class="mv va">'+fmt(fc)+'</div><div class="ms">OPEX ÷ 12</div></div>'+
+  var res=$('beResults'); if(!res) return;
+  res.innerHTML='<div class="mrow4" style="margin-bottom:1rem">'+
+    '<div class="mc cw"><div class="ml">Monthly fixed costs</div><div class="mv va">'+fmt(fc)+'</div><div class="ms">OPEX ÷ 12</div></div>'+
     '<div class="mc cw"><div class="ml">Variable cost %</div><div class="mv va">'+vp+'%</div><div class="ms">COGS / Revenue</div></div>'+
-    '<div class="mc cw"><div class="ml">Break-even revenue/mo</div><div class="mv va">'+(beR>0?fmt(beR):'—')+'</div><div class="ms">'+(beU>0?Math.ceil(beU).toLocaleString()+' units':'')+'</div></div>'+
-    '<div class="mc '+(above>=0?'cg':'cr')+'"><div class="ml">You are</div><div class="mv '+(above>=0?'vg':'vr')+'">'+(above>=0?'+':'')+fmt(above)+'/mo</div><div class="ms">'+(above>=0?'above break-even':'below break-even')+'</div></div></div>'+
-    '<div class="twocol"><div class="panel"><div class="ptitle">Break-even chart</div><div class="cw" style="height:240px"><canvas id="beChart"></canvas></div></div>'+
-    '<div class="panel"><div class="ptitle">Adjust inputs</div><div class="psub">Override auto-calculated values</div>'+
-    '<div class="ig"><label>Monthly fixed costs ($)</label><input type="number" id="beFc" value="'+fc+'" oninput="S.fixedCosts=+this.value;renderBreakEven()"></div>'+
-    '<div class="ig"><label>Variable cost % of revenue</label><input type="number" id="beVp" value="'+vp+'" min="0" max="99" oninput="S.variableCostPct=+this.value;renderBreakEven()"></div>'+
-    '<div class="ig"><label>Price per unit / per sale ($)</label><input type="number" id="bePu" value="'+pu+'" oninput="S.pricePerUnit=+this.value;renderBreakEven()"></div>'+
-    (above<0?'<div class="ibox bad" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Below break-even by '+fmt(Math.abs(above))+'/mo. You need '+fmt(Math.abs(above)*12)+'/yr more revenue or lower costs.</span></div></div>':'')+
-    (above>=0?'<div class="ibox good" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Above break-even by '+fmt(above)+'/mo. Each extra unit generates '+fmt(cm)+' in margin.</span></div></div>':'')+
-    '</div></div>';
-
+    '<div class="mc cw"><div class="ml">Break-even revenue/mo</div><div class="mv va">'+(beR>0?fmt(beR):'—')+'</div><div class="ms">'+(beU>0?Math.ceil(beU).toLocaleString()+' units':'')+' </div></div>'+
+    '<div class="mc '+(above>=0?'cg':'cr')+'"><div class="ml">You are</div><div class="mv '+(above>=0?'vg':'vr')+'">'+(above>=0?'+':'')+fmt(above)+'/mo</div><div class="ms">'+(above>=0?'above break-even':'below break-even')+'</div></div></div>';
+  var ins=$('beInsight');
+  if(ins) ins.innerHTML=(above<0?'<div class="ibox bad" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Below break-even by '+fmt(Math.abs(above))+'/mo. You need '+fmt(Math.abs(above)*12)+'/yr more revenue or lower costs.</span></div></div>':'')+(above>=0?'<div class="ibox good" style="margin-top:.5rem"><div class="irow"><div class="idot"></div><span>Above break-even by '+fmt(above)+'/mo. Each extra unit generates '+fmt(cm)+' in margin.</span></div></div>':'');
   setTimeout(function(){
     var ctx=$('beChart'); if(!ctx||!pu||!fc) return;
     var maxU=Math.ceil(beU*2.5)||50;
@@ -2290,33 +2306,49 @@ function renderBreakEven(){
 // ── PRICING TOOL ──────────────────────────────────────────────────
 function renderPricing(){
   var el=$('tp-pricing'); if(!el) return;
+  if(!$('prResults')){
+    el.innerHTML='<div class="sec">Pricing — based on your cost structure</div>'+
+      '<div id="prResults"></div>'+
+      '<div class="twocol"><div class="panel"><div class="ptitle">Pricing inputs</div>'+
+      '<div class="ig"><label>Your cost per unit ($) — auto from P&L</label><input type="number" id="prCost" oninput="S.costPerUnit=+this.value;updatePricing()"></div>'+
+      '<div class="ig"><label>Target gross margin %</label><input type="number" id="prTgt" min="1" max="90" oninput="S.targetMargin=+this.value;updatePricing()"></div>'+
+      '<div class="ig"><label>Competitor price ($)</label><input type="number" id="prComp" placeholder="Optional" oninput="S.competitorPrice=+this.value;updatePricing()"></div>'+
+      '<hr><div style="font-size:11px;font-weight:500;color:var(--mut);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.07em">Pricing tiers</div>'+
+      '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:6px;margin-bottom:5px"><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Tier</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Price</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Units/mo</span><span></span></div>'+
+      '<div id="prTiers"></div><span class="addbtn" onclick="addPrTier()">+ Add tier</span>'+
+      '</div><div class="panel"><div class="ptitle">Margin by price point</div><div class="cw" style="height:200px"><canvas id="prChart"></canvas></div><table id="prTable" style="margin-top:1rem"></table></div></div>';
+  }
   var cost=S.costPerUnit||Math.round((S.cogs+S.labor)/12);
   var tgt=S.targetMargin||Math.round(IND.gm*100);
-  var tP=cost>0?Math.round(cost/(1-tgt/100)):0;
   var comp=S.competitorPrice||0;
-  var cM=comp>0&&cost>0?Math.round((comp-cost)/comp*100):0;
-
-  el.innerHTML='<div class="sec">Pricing — based on your cost structure</div>'+
-    '<div class="mrow4"><div class="mc cw"><div class="ml">Your cost per unit</div><div class="mv va">'+fmt(cost)+'</div><div class="ms">COGS+Labor ÷ 12 (auto)</div></div>'+
-    '<div class="mc '+(tP>0?'cg':'')+'"><div class="ml">Price for '+tgt+'% margin</div><div class="mv vg">'+(tP>0?fmt(tP):'Set cost')+'</div><div class="ms">Your target price</div></div>'+
-    '<div class="mc '+(comp>0?(comp>=tP?'cg':'cr'):'cb')+'"><div class="ml">Competitor price</div><div class="mv '+(comp>0?(comp>=tP?'vg':'vr'):'vb')+'">'+(comp>0?fmt(comp):'Not set')+'</div><div class="ms">'+(comp>0?'Est. '+cM+'% margin':'')+'</div></div>'+
-    '<div class="mc cb"><div class="ml">Units/mo at target price</div><div class="mv vb">'+(tP>0?Math.round(S.revenue/12/tP).toLocaleString():'—')+'</div><div class="ms">To match current revenue</div></div></div>'+
-    '<div class="twocol"><div class="panel"><div class="ptitle">Pricing inputs</div>'+
-    '<div class="ig"><label>Your cost per unit ($) — auto from P&L</label><input type="number" id="prCost" value="'+cost+'" oninput="S.costPerUnit=+this.value;renderPricing()"></div>'+
-    '<div class="ig"><label>Target gross margin %</label><input type="number" id="prTgt" value="'+tgt+'" min="1" max="90" oninput="S.targetMargin=+this.value;renderPricing()"></div>'+
-    '<div class="ig"><label>Competitor price ($)</label><input type="number" id="prComp" value="'+(comp||'')+'" placeholder="Optional" oninput="S.competitorPrice=+this.value;renderPricing()"></div>'+
-    '<hr><div style="font-size:11px;font-weight:500;color:var(--mut);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.07em">Pricing tiers</div>'+
-    '<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:6px;margin-bottom:5px"><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Tier</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Price</span><span style="font-size:10px;color:var(--sub);font-weight:500;text-transform:uppercase">Units/mo</span><span></span></div>'+
-    '<div id="prTiers"></div><span class="addbtn" onclick="addPrTier()">+ Add tier</span>'+
-    '</div><div class="panel"><div class="ptitle">Margin by price point</div><div class="cw" style="height:200px"><canvas id="prChart"></canvas></div><table id="prTable" style="margin-top:1rem"></table></div></div>';
-
+  if(document.activeElement!=$('prCost')&&$('prCost')) $('prCost').value=cost;
+  if(document.activeElement!=$('prTgt')&&$('prTgt')) $('prTgt').value=tgt;
+  if(document.activeElement!=$('prComp')&&$('prComp')) $('prComp').value=comp||'';
   buildPrTiers();
+  updatePricing();
+}
+function updatePricing(){
+  var cost=S.costPerUnit||Math.round((S.cogs+S.labor)/12);
+  var tgt=S.targetMargin||Math.round(IND.gm*100);
+  var comp=S.competitorPrice||0;
+  if($('prCost')&&document.activeElement==$('prCost')) cost=+$('prCost').value||cost;
+  if($('prTgt')&&document.activeElement==$('prTgt')) tgt=+$('prTgt').value||tgt;
+  if($('prComp')&&document.activeElement==$('prComp')) comp=+$('prComp').value||0;
+  var tP=cost>0?Math.round(cost/(1-tgt/100)):0;
+  var cM=comp>0&&cost>0?Math.round((comp-cost)/comp*100):0;
+  var res=$('prResults'); if(!res) return;
+  res.innerHTML='<div class="mrow4" style="margin-bottom:1rem">'+
+    '<div class="mc cw"><div class="ml">Your cost per unit</div><div class="mv va">'+fmt(cost)+'</div><div class="ms">COGS+Labor ÷ 12 (auto)</div></div>'+
+    '<div class="mc '+(tP>0?'cg':'')+'"><div class="ml">Price for '+tgt+'% margin</div><div class="mv vg">'+(tP>0?fmt(tP):'Set cost')+'</div><div class="ms">Your target price</div></div>'+
+    '<div class="mc '+(comp>0?(comp>=tP?'cg':'cr'):'cb')+'"><div class="ml">Competitor price</div><div class="mv '+(comp>0?(comp>=tP?'vg':'vr'):'vb')+'">'+(comp>0?fmt(comp):'Not set')+'</div><div class="ms">'+(comp>0?'Est. '+cM+'% margin':'')+' </div></div>'+
+    '<div class="mc cb"><div class="ml">Units/mo at target price</div><div class="mv vb">'+(tP>0?Math.round(S.revenue/12/tP).toLocaleString():'—')+'</div><div class="ms">To match current revenue</div></div></div>';
   setTimeout(function(){
     var ctx=$('prChart'); if(!ctx||!cost) return;
     var prices=Array.from({length:10},function(_,i){return Math.round(cost*(1+i*.15));});
     var margins=prices.map(function(p){return Math.round((p-cost)/p*100);});
     if(Charts.pr) Charts.pr.destroy();
     Charts.pr=new Chart(ctx,{type:'bar',data:{labels:prices.map(function(p){return'$'+p;}),datasets:[{label:'Margin %',data:margins,backgroundColor:margins.map(function(m){return m>=tgt?'rgba(42,92,69,.7)':'rgba(122,79,0,.4)';}),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8f8b87',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#8f8b87',font:{size:9},callback:function(v){return v+'%';}},grid:{color:'#ede9e3'}}}}});
+    renderPricingTable();
   },50);
 }
 
@@ -2397,81 +2429,103 @@ function addMSP(){S.msp.push({name:'New Contractor',hrs:0,rate:0,ann:0});renderL
 // ── TAX TOOL ──────────────────────────────────────────────────────
 function renderTax(){
   var el=$('tp-tax'); if(!el) return;
+  if(!$('txResults')){
+    el.innerHTML='<div class="sec">Tax estimate — based on your P&L profit</div>'+
+      '<div id="txResults"></div>'+
+      '<div class="twocol"><div class="panel"><div class="ptitle">Tax inputs</div>'+
+      '<div class="ig"><label>Business structure</label><select id="txBizType" onchange="S.bizType=this.value;updateTax()" style="font-family:var(--sans)">'+
+        '<option value="sole_prop">Sole Proprietor / Single-Member LLC</option>'+
+        '<option value="s_corp">S-Corporation</option>'+
+        '<option value="c_corp">C-Corporation</option>'+
+        '<option value="partnership">Partnership / Multi-Member LLC</option>'+
+      '</select></div>'+
+      '<div class="ig"><label>Filing status</label><select id="txStatus" onchange="S.filingStatus=this.value;updateTax()" style="font-family:var(--sans)">'+
+        '<option value="single">Single</option>'+
+        '<option value="married_joint">Married Filing Jointly</option>'+
+        '<option value="hoh">Head of Household</option>'+
+      '</select></div>'+
+      '<div class="ig"><label>State</label><select id="txState" onchange="S.stateCode=this.value;S.stateRate=STATE_TAXES[this.value]?STATE_TAXES[this.value].rate:0;updateTax()" style="font-family:var(--sans)">'+stateOptions(S.stateCode||'TX')+'</select></div>'+
+      '<div class="ig"><label>Other personal income ($)</label><input type="number" id="txOther" oninput="S.otherIncome=+this.value;updateTax()"></div>'+
+      '<div class="ig"><label>Tax payments made this year ($)</label><input type="number" id="txPaid" oninput="S.ytdTaxPaid=+this.value;updateTax()"></div>'+
+      '<div id="txAdvice"></div>'+
+      '</div><div class="panel"><div class="ptitle">Quarterly payment schedule</div>'+
+      '<table id="txTable"></table><hr><div id="txBreakdown" style="font-size:12px;color:var(--mut);line-height:1.8"></div>'+
+      '</div></div>';
+  }
+  if($("txBizType")) $("txBizType").value=S.bizType||"sole_prop";
+  if($("txStatus"))  $("txStatus").value=S.filingStatus||"single";
+  if($("txState"))   $("txState").value=S.stateCode||"TX";
+  if(document.activeElement!=$("txOther")&&$("txOther")) $("txOther").value=S.otherIncome||0;
+  if(document.activeElement!=$("txPaid") &&$("txPaid"))  $("txPaid").value=S.ytdTaxPaid||0;
+  updateTax();
+}
+function updateTax(){
   var profit=S.revenue-(S.cogs+S.labor+S.opex);
   var other=S.otherIncome||0, totalInc=profit+other;
   var seTax=Math.max(0,profit*0.9235*0.153), seDeduct=seTax/2;
-  var stdDed=S.filingStatus==='married_joint'?29200:14600;
+  var stdDed=S.filingStatus==="married_joint"?29200:14600;
   var taxable=Math.max(0,totalInc-seDeduct-stdDed);
-  var brackets=S.filingStatus==='married_joint'?[[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35],[1e9,.37]]:[[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[609350,.35],[1e9,.37]];
+  var brackets=S.filingStatus==="married_joint"?[[23200,.10],[94300,.12],[201050,.22],[383900,.24],[487450,.32],[731200,.35],[1e9,.37]]:[[11600,.10],[47150,.12],[100525,.22],[191950,.24],[243725,.32],[609350,.35],[1e9,.37]];
   var fedTax=0,rem=taxable,prev=0;
   brackets.forEach(function(b){var chunk=Math.min(rem,b[0]-prev);fedTax+=chunk*b[1];rem-=chunk;prev=b[0];if(rem<=0)return;});
   var stateTax=Math.max(0,profit*(S.stateRate||5)/100);
   var total=fedTax+seTax+stateTax, qtr=total/4;
   var paid=S.ytdTaxPaid||0, owed=total-paid;
   var eff=totalInc>0?total/totalInc:0;
-
-  el.innerHTML='<div class="sec">Tax estimate — based on your P&L profit</div>'+
-    '<div class="mrow4"><div class="mc cw"><div class="ml">Annual tax liability</div><div class="mv va">'+fmt(total)+'</div><div class="ms">Federal + SE + State</div></div>'+
+  var res=$("txResults");
+  if(res) res.innerHTML='<div class="mrow4" style="margin-bottom:1rem">'+
+    '<div class="mc cw"><div class="ml">Annual tax liability</div><div class="mv va">'+fmt(total)+'</div><div class="ms">Federal + SE + State</div></div>'+
     '<div class="mc cw"><div class="ml">Quarterly payment</div><div class="mv va">'+fmt(qtr)+'</div><div class="ms">Every 3 months</div></div>'+
     '<div class="mc cw"><div class="ml">Effective tax rate</div><div class="mv va">'+pc(eff)+'</div><div class="ms">Set aside this % of profit</div></div>'+
-    '<div class="mc '+(owed>0?'cr':'cg')+'"><div class="ml">'+(owed>0?'Still owed':'Overpaid')+'</div><div class="mv '+(owed>0?'vr':'vg')+'">'+fmt(Math.abs(owed))+'</div><div class="ms">After '+fmt(paid)+' paid</div></div></div>'+
-    '<div class="twocol"><div class="panel"><div class="ptitle">Tax inputs</div>'+
-    '<div class="ig"><label>Business structure</label><select id="txBizType" oninput="S.bizType=this.value;renderTax()" style="font-family:var(--sans)">'+
-      '<option value="sole_prop" '+((!S.bizType||S.bizType==='sole_prop')?'selected':'')+'>Sole Proprietor / Single-Member LLC</option>'+
-      '<option value="s_corp" '+(S.bizType==='s_corp'?'selected':'')+'>S-Corporation</option>'+
-      '<option value="c_corp" '+(S.bizType==='c_corp'?'selected':'')+'>C-Corporation</option>'+
-      '<option value="partnership" '+(S.bizType==='partnership'?'selected':'')+'>Partnership / Multi-Member LLC</option>'+
-    '</select></div>'+
-    '<div class="ig"><label>Filing status</label><select id="txStatus" oninput="S.filingStatus=this.value;renderTax()" style="font-family:var(--sans)"><option value="single" '+(S.filingStatus==='single'?'selected':'')+'>Single</option><option value="married_joint" '+(S.filingStatus==='married_joint'?'selected':'')+'>Married Filing Jointly</option><option value="hoh" '+(S.filingStatus==='hoh'?'selected':'')+'>Head of Household</option></select></div>'+
-    '<div class="ig"><label>State</label><select id="txState" oninput="S.stateCode=this.value;S.stateRate=STATE_TAXES[this.value]?STATE_TAXES[this.value].rate:0;renderTax()" style="font-family:var(--sans)">'+stateOptions(S.stateCode||'TX')+'</select></div>'+
-    '<div class="ig"><label>Other personal income ($)</label><input type="number" value="'+(S.otherIncome||0)+'" oninput="S.otherIncome=+this.value;renderTax()"></div>'+
-    '<div class="ig"><label>Tax payments made this year ($)</label><input type="number" value="'+(S.ytdTaxPaid||0)+'" oninput="S.ytdTaxPaid=+this.value;renderTax()"></div>'+
-    '<div class="ibox warn" style="margin-top:.75rem"><div class="irow"><div class="idot"></div><span>Set aside <strong>'+pc(Math.min(.35,eff*1.1))+'</strong> of every dollar of profit immediately. Move it to a separate savings account before spending anything else.</span></div></div>'+
-    '</div><div class="panel"><div class="ptitle">Quarterly payment schedule</div>'+
-    '<table id="txTable"></table><hr>'+
-    '<div style="font-size:12px;color:var(--mut);line-height:1.8"><strong style="color:var(--txt)">Breakdown ('+(!S.bizType||S.bizType==='sole_prop'?'Sole Prop/LLC':S.bizType==='s_corp'?'S-Corp':S.bizType==='c_corp'?'C-Corp':'Partnership')+'):</strong><br>'+
-    ((!S.bizType||S.bizType==='sole_prop'||S.bizType==='partnership')?'Self-employment tax: '+fmt(seTax)+'<br>':'Payroll taxes (est.): '+fmt(seTax)+'<br>')+
-    'Federal income tax: '+fmt(fedTax)+'<br>'+
-    'State tax ('+(S.stateRate||0)+'% — '+(STATE_TAXES[S.stateCode||'TX']?STATE_TAXES[S.stateCode||'TX'].name:'your state')+'): '+fmt(stateTax)+'<br>'+
-    (S.bizType==='c_corp'?'<span style="color:var(--amb)">C-Corp: 21% flat corporate rate + dividends taxed again at personal rate (double taxation)</span><br>':'')+
-    (S.bizType==='s_corp'?'<span style="color:var(--acc)">S-Corp: Pass-through taxation. Salary portion subject to payroll tax; distributions are not. Consult a CPA for S-Corp election timing.</span><br>':'')+
-    '</div>'+
-    '</div></div>';
-
+    '<div class="mc '+(owed>0?'cr':'cg')+'"><div class="ml">'+(owed>0?'Still owed':'Overpaid')+'</div><div class="mv '+(owed>0?'vr':'vg')+"'>"'+fmt(Math.abs(owed))+'</div><div class="ms">After '+fmt(paid)+' paid</div></div></div>';
+  var adv=$("txAdvice");
+  if(adv) adv.innerHTML='<div class="ibox warn"><div class="irow"><div class="idot"></div><span>Set aside <strong>'+pc(Math.min(.35,eff*1.1))+'</strong> of every dollar of profit immediately.</span></div></div>';
   var qtrs=[['Q1','April 15'],['Q2','June 17'],['Q3','Sep 16'],['Q4','Jan 15']];
   var t='<thead><tr><th>Quarter</th><th class="tr">Due</th><th class="tr">Amount</th><th class="tr">Status</th></tr></thead><tbody>';
   qtrs.forEach(function(q,i){var cp=Math.min(paid,(i+1)*qtr),tp=cp-Math.min(paid,i*qtr),st=tp>=qtr?'✓ Paid':tp>0?'Partial':'Due';t+='<tr><td class="tmu">'+q[0]+'</td><td class="tmu">'+q[1]+'</td><td class="tr tm">'+fmt(qtr)+'</td><td class="tr '+(st.includes('✓')?'vg':st==='Partial'?'va':'vr')+'">'+st+'</td></tr>';});
-  if($('txTable')) $('txTable').innerHTML=t+'</tbody>';
+  if($("txTable")) $("txTable").innerHTML=t+'</tbody>';
+  var biz=S.bizType||'sole_prop';
+  var bd=$("txBreakdown");
+  if(bd) bd.innerHTML='<strong style="color:var(--txt)">Breakdown ('+(biz==='sole_prop'?'Sole Prop/LLC':biz==='s_corp'?'S-Corp':biz==='c_corp'?'C-Corp':'Partnership')+'):</strong><br>'+ ((biz==='sole_prop'||biz==='partnership')?'Self-employment tax: '+fmt(seTax)+'<br>':'Payroll taxes (est.): '+fmt(seTax)+'<br>')+'Federal income tax: '+fmt(fedTax)+'<br>State tax ('+(S.stateRate||0)+'% — '+(STATE_TAXES[S.stateCode||'TX']?STATE_TAXES[S.stateCode||'TX'].name:'your state')+'): '+fmt(stateTax)+'<br>'+(biz==='c_corp'?'<span style="color:var(--amb)">C-Corp: 21% flat corporate rate + dividends taxed again at personal rate (double taxation)</span><br>':'')+( biz==='s_corp'?'<span style="color:var(--acc)">S-Corp: Pass-through taxation. Consult a CPA for election timing.</span><br>':'')+'';
 }
 
 // ── RUNWAY TOOL ───────────────────────────────────────────────────
 function renderRunway(){
   var el=$('tp-runway'); if(!el) return;
+  if(!$('rwResults')){
+    el.innerHTML='<div class="sec">Runway — auto-calculated from your P&L</div>'+
+      '<div id="rwResults"></div>'+
+      '<div class="twocol"><div class="panel"><div class="ptitle">12-month cash projection</div><div class="psub">Base · Best (+20% rev) · Worst (−20% rev)</div><div class="cw" style="height:240px"><canvas id="rwChart"></canvas></div></div>'+
+      '<div class="panel"><div class="ptitle">Adjust runway inputs</div>'+
+      '<div class="ig"><label>Cash on hand today ($)</label><input type="number" id="rwCash" oninput="S.currentCash=+this.value;updateRunway()"></div>'+
+      '<div class="ig"><label>Monthly expenses ($)</label><input type="number" id="rwBurn" oninput="S.avgMonthlyBurn=+this.value;updateRunway()"></div>'+
+      '<div id="rwInsight"></div>'+
+      '</div></div>';
+  }
   var cash=S.currentCash||S.cashOnHand||Math.round(S.revenue*.08);
   var burn=S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
-  var rev=S.revenue/12;
-  var netB=burn-rev;
+  if(document.activeElement!=$('rwCash')&&$('rwCash')) $('rwCash').value=cash;
+  if(document.activeElement!=$('rwBurn')&&$('rwBurn')) $('rwBurn').value=burn;
+  updateRunway();
+}
+function updateRunway(){
+  var cash=S.currentCash||S.cashOnHand||Math.round(S.revenue*.08);
+  var burn=S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
+  if($('rwCash')&&document.activeElement==$('rwCash')) cash=+$('rwCash').value||cash;
+  if($('rwBurn')&&document.activeElement==$('rwBurn')) burn=+$('rwBurn').value||burn;
+  var rev=S.revenue/12, netB=burn-rev;
   var rwy=netB>0?cash/netB:Infinity;
-  var upPct=20/100, dnPct=20/100;
-
   var MO=['Now','Mo 1','Mo 2','Mo 3','Mo 4','Mo 5','Mo 6','Mo 7','Mo 8','Mo 9','Mo 10','Mo 11','Mo 12'];
   var base=[cash],best=[cash],worst=[cash];
-  for(var i=1;i<=12;i++){base.push(Math.round(Math.max(0,base[i-1]+(rev-burn))));best.push(Math.round(Math.max(0,best[i-1]+(rev*(1+upPct)-burn))));worst.push(Math.round(Math.max(0,worst[i-1]+(rev*(1-dnPct)-burn))));}
-
-  el.innerHTML='<div class="sec">Runway — auto-calculated from your P&L</div>'+
-    '<div class="mrow4"><div class="mc '+(rwy>12||rwy===Infinity?'cg':rwy>6?'cw':'cr')+'"><div class="ml">Runway (base case)</div><div class="mv '+(rwy>12||rwy===Infinity?'vg':rwy>6?'va':'vr')+'">'+(rwy===Infinity?'∞':rwy.toFixed(1)+' mo')+'</div><div class="ms">'+(rwy===Infinity?'Cash flow positive':'At current burn')+'</div></div>'+
+  for(var i=1;i<=12;i++){base.push(Math.round(Math.max(0,base[i-1]+(rev-burn))));best.push(Math.round(Math.max(0,best[i-1]+(rev*1.2-burn))));worst.push(Math.round(Math.max(0,worst[i-1]+(rev*.8-burn))));}
+  var res=$('rwResults');
+  if(res) res.innerHTML='<div class="mrow4" style="margin-bottom:1rem">'+
+    '<div class="mc '+(rwy>12||rwy===Infinity?'cg':rwy>6?'cw':'cr')+'"><div class="ml">Runway (base case)</div><div class="mv '+(rwy>12||rwy===Infinity?'vg':rwy>6?'va':'vr')+'">'+(rwy===Infinity?'∞':rwy.toFixed(1)+' mo')+'</div><div class="ms">'+(rwy===Infinity?'Cash flow positive':'At current burn')+'</div></div>'+
     '<div class="mc '+(netB<=0?'cg':'cr')+'"><div class="ml">Monthly net burn</div><div class="mv '+(netB<=0?'vg':'vr')+'">'+(netB<=0?'+':'-')+fmt(Math.abs(netB))+'</div><div class="ms">'+(netB<=0?'Cash flow positive':'Burning monthly')+'</div></div>'+
     '<div class="mc cb"><div class="ml">Monthly expenses</div><div class="mv">'+fmt(burn)+'</div><div class="ms">COGS+Labor+OPEX ÷ 12</div></div>'+
-    '<div class="mc cb"><div class="ml">Monthly revenue</div><div class="mv">'+fmt(rev)+'</div><div class="ms">Annual ÷ 12</div></div></div>'+
-    '<div class="twocol"><div class="panel"><div class="ptitle">12-month cash projection</div><div class="psub">Base · Best (+20% rev) · Worst (−20% rev)</div><div class="cw" style="height:240px"><canvas id="rwChart"></canvas></div></div>'+
-    '<div class="panel"><div class="ptitle">Adjust runway inputs</div>'+
-    '<div class="ig"><label>Cash on hand today ($)</label><input type="number" value="'+cash+'" oninput="S.currentCash=+this.value;renderRunway()"></div>'+
-    '<div class="ig"><label>Monthly expenses ($)</label><input type="number" value="'+burn+'" oninput="S.avgMonthlyBurn=+this.value;renderRunway()"></div>'+
-    (rwy<6&&rwy>0?'<div class="ibox bad"><div class="irow"><div class="idot"></div><span><strong>Critical:</strong> '+rwy.toFixed(1)+' months of runway. Act immediately — cut expenses and accelerate collections.</span></div></div>':'')+
-    (rwy>=6&&rwy<12?'<div class="ibox warn"><div class="irow"><div class="idot"></div><span><strong>Plan now:</strong> '+rwy.toFixed(1)+' months of runway. Start the conversation before you hit 3 months.</span></div></div>':'')+
-    (rwy===Infinity?'<div class="ibox good"><div class="irow"><div class="idot"></div><span>Cash flow positive. Build your reserve to at least 6 months of expenses.</span></div></div>':'')+
-    '</div></div>';
-
+    '<div class="mc cb"><div class="ml">Monthly revenue</div><div class="mv">'+fmt(rev)+'</div><div class="ms">Annual ÷ 12</div></div></div>';
+  var ins=$('rwInsight');
+  if(ins) ins.innerHTML=(rwy<6&&rwy>0?'<div class="ibox bad"><div class="irow"><div class="idot"></div><span><strong>Critical:</strong> '+rwy.toFixed(1)+' months of runway. Act immediately.</span></div></div>':'')+(rwy>=6&&rwy<12?'<div class="ibox warn"><div class="irow"><div class="idot"></div><span><strong>Plan now:</strong> '+rwy.toFixed(1)+' months of runway.</span></div></div>':'')+(rwy===Infinity?'<div class="ibox good"><div class="irow"><div class="idot"></div><span>Cash flow positive. Build reserve to 6 months of expenses.</span></div></div>':'');
   setTimeout(function(){
     var ctx=$('rwChart'); if(!ctx) return;
     if(Charts.rw) Charts.rw.destroy();
