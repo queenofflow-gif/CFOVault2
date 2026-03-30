@@ -1392,14 +1392,15 @@ function parseXL(file){
   var reader = new FileReader();
   reader.onload = function(e){
     try{
-      var wb = XLSX.read(e.target.result, {type:'array'});
+      var wb = XLSX.read(e.target.result, {type:'array', cellFormula:false, cellNF:false, cellStyles:false});
       var msgs = [];
       var isN = function(v){ return typeof v==='number' && isFinite(v) && v!==0; };
       var pv  = function(v){
         if(isN(v)) return v;
         if(typeof v==='string'){
-          var s=v.replace(/[$, ]/g,'');
+          var s=v.replace(/[$, ]/g,'').trim();
           if(/^\([\d.]+\)$/.test(s)) return -parseFloat(s.slice(1,-1));
+          if(s.slice(-1)==='%') return parseFloat(s)/100;
           return parseFloat(s)||0;
         }
         return 0;
@@ -1441,7 +1442,7 @@ function parseXL(file){
       // Convert all sheets to arrays
       var sheets = {};
       wb.SheetNames.forEach(function(n){
-        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});
+        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:false});
       });
       var first = sheets[wb.SheetNames[0].toLowerCase().trim()];
       var findSh = function(){
