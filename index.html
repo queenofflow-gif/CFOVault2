@@ -169,6 +169,37 @@ footer strong{color:var(--acc)}
 @media(max-width:900px){.twocol,.tcol,.mrow,.mrow4,.mrow3,.mrow2,.ind-grid{grid-template-columns:1fr}main{padding:1.25rem}header{padding:1rem}}
 @media print{.hbtn,.tnav-wrap,.ob-actions,.ai-btn,.addbtn,.rmbtn,.toast{display:none!important}body{background:#fff}}
 
+/* ── CHAT ASSISTANT ── */
+#chatBtn{position:fixed;bottom:1.75rem;right:1.75rem;width:52px;height:52px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:300;transition:transform .15s,background .15s;font-size:22px}
+#chatBtn:hover{background:var(--accM);transform:scale(1.07)}
+#chatBtn.open{background:var(--accM)}
+#chatPanel{position:fixed;bottom:5.5rem;right:1.75rem;width:360px;max-height:520px;background:var(--surf);border:1px solid var(--bdrS);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:300;display:none;flex-direction:column;overflow:hidden}
+#chatPanel.on{display:flex}
+.chat-head{padding:.85rem 1.1rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:9px}
+.chat-head-icon{width:28px;height:28px;background:var(--accL);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.chat-head-title{font-family:var(--serif);font-size:14px;font-weight:500;flex:1}
+.chat-head-sub{font-size:11px;color:var(--sub)}
+.chat-clear{background:none;border:none;color:var(--sub);font-size:11px;cursor:pointer;padding:3px 7px;border-radius:5px;font-family:var(--sans)}
+.chat-clear:hover{background:var(--surf2);color:var(--txt)}
+.chat-msgs{flex:1;overflow-y:auto;padding:.85rem 1rem;display:flex;flex-direction:column;gap:.65rem;min-height:0}
+.chat-msg{max-width:88%;font-size:13px;line-height:1.6;padding:.55rem .8rem;border-radius:10px}
+.chat-msg.user{background:var(--acc);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.chat-msg.ai{background:var(--surf2);color:var(--txt);align-self:flex-start;border-bottom-left-radius:3px}
+.chat-msg.ai strong{color:var(--acc);font-weight:500}
+.chat-msg.typing{opacity:.6}
+.chat-typing{display:flex;gap:4px;align-items:center;padding:.4rem .6rem}
+.chat-typing .dot{width:6px;height:6px;border-radius:50%;background:var(--sub);animation:bl 1.2s infinite}
+.chat-typing .dot:nth-child(2){animation-delay:.2s}.chat-typing .dot:nth-child(3){animation-delay:.4s}
+.chat-foot{padding:.65rem .85rem;border-top:1px solid var(--bdr);display:flex;gap:7px;align-items:flex-end}
+.chat-foot textarea{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:7px 10px;font-family:var(--sans);font-size:13px;color:var(--txt);outline:none;resize:none;max-height:100px;line-height:1.5;transition:border-color .15s}
+.chat-foot textarea:focus{border-color:var(--acc)}
+.chat-send{background:var(--acc);border:none;color:#fff;border-radius:8px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:background .15s}
+.chat-send:hover{background:var(--accM)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.chat-starter{background:var(--accL);border:1px solid #aecfbd;border-radius:8px;padding:.45rem .75rem;font-size:12px;color:var(--acc);cursor:pointer;text-align:left;font-family:var(--sans);transition:background .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-starter:hover{background:#d4e8dc}
+@media(max-width:480px){#chatPanel{width:calc(100vw - 2rem);right:1rem}}
+
 /* ── WORKSPACE SIDEBAR ── */
 #wsOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200}
 #wsOverlay.on{display:block}
@@ -237,6 +268,24 @@ footer strong{color:var(--acc)}
 </head>
 <body>
 <div class="toast" id="toast"></div>
+
+<!-- CHAT ASSISTANT -->
+<button id="chatBtn" onclick="toggleChat()" title="Ask your CFO assistant">✦</button>
+<div id="chatPanel">
+  <div class="chat-head">
+    <div class="chat-head-icon">✦</div>
+    <div style="flex:1">
+      <div class="chat-head-title">CFO Assistant</div>
+      <div class="chat-head-sub" id="chatHeadSub">Ask anything about your financials</div>
+    </div>
+    <button class="chat-clear" onclick="clearChat()">Clear</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-foot">
+    <textarea id="chatInput" rows="1" placeholder="Ask about your P&amp;L..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+    <button class="chat-send" id="chatSend" onclick="sendChat()">&#x2192;</button>
+  </div>
+</div>
 
 <!-- AUTH OVERLAY -->
 <div id="authOverlay">
@@ -2883,6 +2932,10 @@ function wsLoadClient(id){
   wsSetActiveBadge(entry ? entry.name : null);
   renderWorkspaceList();
   closeWorkspace();
+  // Reset chat for the new client
+  chatHistory = [];
+  var msgs = $('chatMsgs'); if(msgs) msgs.innerHTML='';
+  if(chatOpen && S.revenue>0) chatShowWelcome();
 }
 
 function wsDeleteClient(id, name, e){
@@ -3032,6 +3085,7 @@ function setUser(user){
             IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
             wsSetActiveBadge(entry.name);
             go();
+            chatCheckShow();
           }
         }
       }
@@ -3125,6 +3179,197 @@ document.addEventListener('DOMContentLoaded', function(){
   initSupabase();
 });
 
+// ── CFO CHAT ASSISTANT ────────────────────────────────────────────
+var chatHistory = [];
+var chatOpen = false;
+var chatTyping = false;
+
+var CHAT_STARTERS = [
+  'Why is my gross margin low?',
+  'How do I improve net margin?',
+  'When will I run out of cash?',
+  'Am I paying too much in labor?',
+  'What price should I charge?',
+  'How much revenue to break even?',
+  'What are my biggest risks?',
+  'How do I reduce my tax bill?'
+];
+
+function chatBuildContext(){
+  var a = getAdj();
+  var gmP = (a.bGMp*100).toFixed(1);
+  var netP = S.revenue ? (a.bNet/S.revenue*100).toFixed(1) : '0';
+  var lbP = S.revenue ? (S.labor/S.revenue*100).toFixed(1) : '0';
+  var opP = S.revenue ? (S.opex/S.revenue*100).toFixed(1) : '0';
+  var biz = S.bizName || IND.l;
+  var lines = [
+    'You are a CFO advisor for '+biz+', a '+IND.l+' business.',
+    'Answer questions directly using the financial data below. Be specific with numbers. Keep answers concise — 2-4 sentences unless the question requires more. Never say you cannot access data; it is all provided here.',
+    '',
+    'FINANCIAL DATA (annual):',
+    '- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString(),
+    '- '+IND.tC+': $'+Math.round(S.cogs).toLocaleString()+' ('+( S.revenue?(S.cogs/S.revenue*100).toFixed(1):0)+'% of revenue)',
+    '- '+IND.tL+': $'+Math.round(S.labor).toLocaleString()+' ('+lbP+'% of revenue)',
+    '- Gross profit: $'+Math.round(a.bGM).toLocaleString()+' ('+gmP+'% margin) — industry benchmark: '+( IND.gm*100).toFixed(0)+'%',
+    '- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+' ('+opP+'% of revenue)',
+    '- Net income: $'+Math.round(a.bNet).toLocaleString()+' ('+netP+'% margin) — industry benchmark: '+(IND.net*100).toFixed(0)+'%',
+    '- Monthly revenue: $'+Math.round(S.revenue/12).toLocaleString(),
+    '- Cash on hand: $'+(S.currentCash||S.cashOnHand||0).toLocaleString(),
+    '- Monthly burn: $'+(S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12)).toLocaleString(),
+  ];
+  if(S.fixedCosts) lines.push('- Monthly fixed costs: $'+S.fixedCosts.toLocaleString());
+  if(S.pricePerUnit) lines.push('- Price per unit: $'+S.pricePerUnit.toLocaleString());
+  if(S.costPerUnit) lines.push('- Cost per unit: $'+S.costPerUnit.toLocaleString());
+  if(S.staff&&S.staff.length) lines.push('- Staff count: '+S.staff.length+' employees, total salaries $'+Math.round(S.staff.reduce(function(a,s){return a+(s.total||0);},0)).toLocaleString());
+  var runway = (function(){
+    var burn=S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
+    var rev=S.revenue/12;
+    var nb=burn-rev;
+    return nb>0 ? ((S.currentCash||0)/nb).toFixed(1)+' months' : 'Cash flow positive';
+  })();
+  lines.push('- Cash runway: '+runway);
+  return lines.join('\n');
+}
+
+function toggleChat(){
+  if(!S.revenue){ toast('Import a P&L first to use the assistant'); return; }
+  chatOpen = !chatOpen;
+  var panel = $('chatPanel');
+  var btn = $('chatBtn');
+  if(chatOpen){
+    panel.classList.add('on');
+    btn.classList.add('open');
+    if(chatHistory.length===0) chatShowWelcome();
+    setTimeout(function(){ var inp=$('chatInput'); if(inp) inp.focus(); }, 200);
+  } else {
+    panel.classList.remove('on');
+    btn.classList.remove('open');
+  }
+}
+
+function chatShowWelcome(){
+  var msgs = $('chatMsgs'); if(!msgs) return;
+  var biz = S.bizName || IND.l;
+  var sub = $('chatHeadSub');
+  if(sub) sub.textContent = biz;
+  // Welcome bubble
+  var welcome = document.createElement('div');
+  welcome.className = 'chat-msg ai';
+  welcome.innerHTML = "Hi! I know <strong>"+biz+"</strong>'s financials. Ask me anything — margins, cash flow, pricing, taxes, or what to do next.";
+  msgs.appendChild(welcome);
+  // Starter chips
+  var chips = document.createElement('div');
+  chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-top:2px';
+  var starters = CHAT_STARTERS.slice(0,4);
+  starters.forEach(function(s){
+    var btn = document.createElement('button');
+    btn.className = 'chat-starter';
+    btn.textContent = s;
+    btn.onclick = function(){ $('chatInput').value=s; sendChat(); };
+    chips.appendChild(btn);
+  });
+  msgs.appendChild(chips);
+  chatScrollBottom();
+}
+
+function sendChat(){
+  if(chatTyping) return;
+  var inp = $('chatInput');
+  var msg = (inp.value||'').trim();
+  if(!msg) return;
+  if(!S.revenue){ toast('Import a P&L first'); return; }
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  // Add user bubble
+  chatAddBubble('user', msg);
+  chatHistory.push({role:'user', content:msg});
+
+  // Show typing indicator
+  chatTyping = true;
+  var sendBtn = $('chatSend'); if(sendBtn) sendBtn.disabled=true;
+  var typingEl = chatAddTyping();
+
+  // Build messages array — include history (keep last 10 turns to stay within context)
+  var historySlice = chatHistory.slice(-10);
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:400,
+      system: chatBuildContext(),
+      messages: historySlice
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var text = (d.content&&d.content[0]&&d.content[0].text)||'Sorry, I could not process that. Please try again.';
+    chatHistory.push({role:'assistant', content:text});
+    if(typingEl) typingEl.remove();
+    chatAddBubble('ai', text);
+  })
+  .catch(function(){
+    if(typingEl) typingEl.remove();
+    chatAddBubble('ai', 'Connection error. Check your internet and try again.');
+  })
+  .finally(function(){
+    chatTyping = false;
+    if(sendBtn) sendBtn.disabled=false;
+  });
+}
+
+function chatAddBubble(role, text){
+  var msgs = $('chatMsgs'); if(!msgs) return;
+  var div = document.createElement('div');
+  div.className = 'chat-msg '+role;
+  // Format markdown bold (**text**) → <strong>
+  div.innerHTML = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+  msgs.appendChild(div);
+  chatScrollBottom();
+  return div;
+}
+
+function chatAddTyping(){
+  var msgs = $('chatMsgs'); if(!msgs) return null;
+  var div = document.createElement('div');
+  div.className = 'chat-msg ai typing';
+  div.innerHTML = '<div class="chat-typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  msgs.appendChild(div);
+  chatScrollBottom();
+  return div;
+}
+
+function chatScrollBottom(){
+  var msgs = $('chatMsgs'); if(!msgs) return;
+  setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 30);
+}
+
+function clearChat(){
+  chatHistory = [];
+  var msgs = $('chatMsgs'); if(msgs) msgs.innerHTML='';
+  chatShowWelcome();
+}
+
+// Show chat button when user has data loaded
+var _chatOrigGo = go;
+go = function(){
+  _chatOrigGo();
+  var btn = $('chatBtn');
+  if(btn && currentUser) btn.style.display='flex';
+};
+
+// Also show when user logs in and has active workspace
+function chatCheckShow(){
+  var btn = $('chatBtn');
+  if(btn && currentUser && S.revenue>0) btn.style.display='flex';
+}
+
 </script>
+
 </body>
 </html>
