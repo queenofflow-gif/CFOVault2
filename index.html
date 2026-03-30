@@ -2604,7 +2604,7 @@ function runAI(){
   };
   var ctx=indContext[S.industry]||indContext.other;
   var prompt='You are a CFO advisor reviewing a '+IND.l+' business called "'+(S.bizName||'the business')+'". Benchmark context: '+ctx+'\n\nP&L (annual):\n- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString()+'\n- '+IND.tC+': $'+Math.round(S.cogs).toLocaleString()+' ('+pc(S.revenue?S.cogs/S.revenue:0)+' of revenue)\n- '+IND.tL+': $'+Math.round(S.labor).toLocaleString()+' ('+pc(S.revenue?S.labor/S.revenue:0)+' of revenue)\n- Gross margin: $'+Math.round(a.bGM).toLocaleString()+' ('+pc(a.bGMp)+') — benchmark '+pc(IND.gm)+'\n- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+'\n- Net margin: $'+Math.round(a.bNet).toLocaleString()+' ('+pc(S.revenue?a.bNet/S.revenue:0)+') — benchmark '+pc(IND.net)+'\n'+(S.staff.length?'\nStaff:\n'+S.staff.map(function(s){return'- '+s.name+': $'+Math.round(s.total||0).toLocaleString();}).join('\n'):'')+'\n\nAs a CFO: (1) 2-sentence health assessment using industry benchmarks above, (2) top 3 risks with specific numbers, (3) 3 CFO-level actions this month with exact targets. Label each section **bold header**. Direct, no filler words.'
-  fetch('https://cfovault-proxy.keyunterichard.workers.dev',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':''},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:900,system:'You are a CFO advisor for small business owners. Direct, plain language. Bold key terms with **asterisks**. Label sections with **bold headers**.',messages:[{role:'user',content:prompt}]})})
+  fetch('https://cfovault-proxy.keyunterichard.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:900,system:'You are a CFO advisor for small business owners. Direct, plain language. Bold key terms with **asterisks**. Label sections with **bold headers**.',messages:[{role:'user',content:prompt}]})})
   .then(function(r){return r.json();})
   .then(function(d){renderAI(d.content&&d.content[0]&&d.content[0].text||'No response.',out);})
   .catch(function(){renderAI(fallbackAI(a),out);})
@@ -3295,7 +3295,7 @@ function sendChat(){
 
   fetch('https://cfovault-proxy.keyunterichard.workers.dev', {
     method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':''},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       model:'claude-sonnet-4-5',
       max_tokens:400,
