@@ -173,6 +173,43 @@ footer strong{color:var(--acc)}
 #chatBtn{position:fixed;bottom:1.75rem;right:1.75rem;width:52px;height:52px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:300;transition:transform .15s,background .15s;font-size:22px}
 #chatBtn:hover{background:var(--accM);transform:scale(1.07)}
 #chatBtn.open{background:var(--accM)}
+#prepBtn{position:fixed;bottom:1.75rem;right:5.25rem;width:52px;height:52px;border-radius:50%;background:var(--surf);border:1.5px solid var(--bdrS);cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:300;transition:transform .15s,background .15s,border-color .15s;font-size:18px;color:var(--acc)}
+#prepBtn:hover{background:var(--accL);border-color:var(--acc);transform:scale(1.07)}
+#prepBtn.open{background:var(--accL);border-color:var(--acc)}
+#prepPanel{position:fixed;bottom:5.5rem;right:1.75rem;width:400px;max-height:580px;background:var(--surf);border:1px solid var(--bdrS);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:300;display:none;flex-direction:column;overflow:hidden}
+#prepPanel.on{display:flex}
+.prep-head{background:var(--acc);padding:.85rem 1.1rem;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.prep-head-icon{width:28px;height:28px;background:rgba(255,255,255,.15);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0}
+.prep-head-title{font-family:var(--serif);font-size:14px;font-weight:500;color:#fff;flex:1}
+.prep-head-sub{font-size:11px;color:rgba(255,255,255,.65)}
+.prep-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:5px;line-height:1}
+.prep-close:hover{color:#fff;background:rgba(255,255,255,.15)}
+.prep-body{flex:1;overflow-y:auto;padding:.9rem 1rem;min-height:0}
+.prep-generating{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1rem;gap:.75rem;color:var(--mut);font-size:13px}
+.prep-dots{display:flex;gap:5px}
+.prep-section{margin-bottom:1.1rem}
+.prep-section:last-child{margin-bottom:0}
+.prep-sec-label{font-size:9px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+.prep-summary{font-size:13px;color:var(--txt);line-height:1.7}
+.prep-summary strong{color:var(--acc);font-weight:500}
+.prep-tp{display:flex;align-items:flex-start;gap:9px;margin-bottom:.55rem;font-size:12px;line-height:1.55;color:var(--txt)}
+.prep-tp:last-child{margin-bottom:0}
+.prep-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.prep-dot.r{background:var(--red)}.prep-dot.a{background:var(--amb)}.prep-dot.g{background:var(--grn)}
+.prep-badge{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px;flex-shrink:0;margin-top:3px;white-space:nowrap}
+.prep-badge.r{background:var(--redL);color:var(--red)}
+.prep-badge.a{background:var(--ambL);color:var(--amb)}
+.prep-badge.g{background:var(--grnL);color:var(--grn)}
+.prep-q{display:flex;align-items:flex-start;gap:8px;margin-bottom:.55rem;font-size:12px;line-height:1.55;color:var(--txt)}
+.prep-q:last-child{margin-bottom:0}
+.prep-qnum{width:18px;height:18px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--sub);flex-shrink:0;margin-top:1px}
+.prep-action{background:var(--accL);border:1px solid #aecfbd;border-radius:8px;padding:.65rem .85rem;font-size:12px;color:var(--accD);line-height:1.65}
+.prep-action strong{font-weight:500}
+.prep-foot{padding:.65rem 1rem;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surf2)}
+.prep-foot-note{font-size:10px;color:var(--sub)}
+.prep-copy{background:var(--surf);border:1px solid var(--bdrS);color:var(--mut);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.prep-copy:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+@media(max-width:480px){#prepPanel{width:calc(100vw - 2rem);right:1rem}#prepBtn{right:4.5rem}}
 #chatPanel{position:fixed;bottom:5.5rem;right:1.75rem;width:360px;max-height:520px;background:var(--surf);border:1px solid var(--bdrS);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:300;display:none;flex-direction:column;overflow:hidden}
 #chatPanel.on{display:flex}
 .chat-head{padding:.85rem 1.1rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:9px}
@@ -271,6 +308,27 @@ footer strong{color:var(--acc)}
 
 <!-- CHAT ASSISTANT -->
 <button id="chatBtn" onclick="toggleChat()" title="Ask your CFO assistant">✦</button>
+<button id="prepBtn" onclick="togglePrep()" title="Prep for client call">&#x1F4CB;</button>
+<div id="prepPanel">
+  <div class="prep-head">
+    <div class="prep-head-icon">&#x1F4CB;</div>
+    <div style="flex:1">
+      <div class="prep-head-title">Meeting prep</div>
+      <div class="prep-head-sub" id="prepHeadSub">Generating your brief...</div>
+    </div>
+    <button class="prep-close" onclick="closePrep()">&#x2715;</button>
+  </div>
+  <div class="prep-body" id="prepBody">
+    <div class="prep-generating" id="prepGenerating">
+      <div class="prep-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <span>Analyzing financials...</span>
+    </div>
+  </div>
+  <div class="prep-foot" id="prepFoot" style="display:none">
+    <div class="prep-foot-note" id="prepFootNote"></div>
+    <button class="prep-copy" onclick="copyPrep()">Copy brief</button>
+  </div>
+</div>
 <div id="chatPanel">
   <div class="chat-head">
     <div class="chat-head-icon">✦</div>
@@ -2932,10 +2990,13 @@ function wsLoadClient(id){
   wsSetActiveBadge(entry ? entry.name : null);
   renderWorkspaceList();
   closeWorkspace();
-  // Reset chat for the new client
+  // Reset chat and prep for the new client
   chatHistory = [];
   var msgs = $('chatMsgs'); if(msgs) msgs.innerHTML='';
   if(chatOpen && S.revenue>0) chatShowWelcome();
+  // Reset prep
+  prepText = '';
+  closePrep();
 }
 
 function wsDeleteClient(id, name, e){
@@ -3179,7 +3240,208 @@ document.addEventListener('DOMContentLoaded', function(){
   initSupabase();
 });
 
-// ── CFO CHAT ASSISTANT ────────────────────────────────────────────
+// ── MEETING PREP ──────────────────────────────────────────────────
+var prepOpen = false;
+var prepText = '';
+
+function togglePrep(){
+  if(!S.revenue){ toast('Import a P&L first to generate a meeting brief'); return; }
+  prepOpen = !prepOpen;
+  var panel = $('prepPanel');
+  var btn = $('prepBtn');
+  if(prepOpen){
+    // Close chat if open
+    if(chatOpen){ toggleChat(); }
+    panel.classList.add('on');
+    btn.classList.add('open');
+    generatePrep();
+  } else {
+    closePrep();
+  }
+}
+
+function closePrep(){
+  prepOpen = false;
+  var panel = $('prepPanel');
+  var btn = $('prepBtn');
+  if(panel) panel.classList.remove('on');
+  if(btn) btn.classList.remove('open');
+}
+
+function generatePrep(){
+  var body = $('prepBody');
+  var foot = $('prepFoot');
+  var sub  = $('prepHeadSub');
+  var biz  = S.bizName || IND.l;
+
+  if(sub) sub.textContent = biz;
+  if(foot) foot.style.display='none';
+  if(body) body.innerHTML='<div class="prep-generating" id="prepGenerating"><div class="prep-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>Analyzing '+biz+'...</span></div>';
+
+  var a = getAdj();
+  var gmP   = (a.bGMp*100).toFixed(1);
+  var netP  = S.revenue ? (a.bNet/S.revenue*100).toFixed(1) : '0';
+  var lbP   = S.revenue ? (S.labor/S.revenue*100).toFixed(1) : '0';
+  var burn  = S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
+  var cash  = S.currentCash||S.cashOnHand||0;
+  var netB  = burn - S.revenue/12;
+  var rwy   = netB>0 ? (cash/netB).toFixed(1)+' months' : 'cash flow positive';
+
+  var prompt = 'You are preparing a fractional CFO for a client call with '+biz+', a '+IND.l+' business.\n\n'+
+    'FINANCIALS:\n'+
+    '- Revenue: $'+Math.round(S.revenue).toLocaleString()+'/yr ($'+Math.round(S.revenue/12).toLocaleString()+'/mo)\n'+
+    '- Gross margin: '+gmP+'% (benchmark: '+(IND.gm*100).toFixed(0)+'%)\n'+
+    '- Net margin: '+netP+'% (benchmark: '+(IND.net*100).toFixed(0)+'%)\n'+
+    '- '+IND.tL+': '+lbP+'% of revenue (benchmark: '+(IND.lb*100).toFixed(0)+'%)\n'+
+    '- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+'/yr ('+(S.revenue?(S.opex/S.revenue*100).toFixed(1):0)+'% of revenue)\n'+
+    '- Cash on hand: $'+cash.toLocaleString()+'\n'+
+    '- Monthly burn: $'+burn.toLocaleString()+'\n'+
+    '- Cash runway: '+rwy+'\n'+
+    (S.pricePerUnit?'- Price per unit: $'+S.pricePerUnit.toLocaleString()+'\n':'')+
+    (S.competitorPrice?'- Competitor price: $'+S.competitorPrice.toLocaleString()+'\n':'')+
+    (S.staff&&S.staff.length?'- Staff: '+S.staff.length+' employees\n':'')+
+    '\nGenerate a meeting prep brief with EXACTLY these 4 sections. Use real numbers throughout. Be specific and direct.\n\n'+
+    '**STATE OF THE BUSINESS**\nExactly 2 sentences. Plain language summary of overall financial health using actual numbers.\n\n'+
+    '**TALKING POINTS**\nExactly 3 items. Each on its own line starting with CRITICAL:, REVIEW:, or OPPORTUNITY: followed by the point. Use real numbers.\n\n'+
+    '**QUESTIONS TO ASK**\nExactly 3 questions numbered 1. 2. 3. Each question should reference specific numbers from the data.\n\n'+
+    '**RECOMMENDED ACTION**\nExactly 1 specific action to propose on the call with a concrete expected outcome in dollars.\n\n'+
+    'Format: use the exact section headers in bold. No intro, no closing remarks.';
+
+  fetch('https://cfovault-proxy.keyunterichard.workers.dev', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:600,
+      messages:[{role:'user', content:prompt}]
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var text = d.content&&d.content[0]&&d.content[0].text;
+    if(!text){ renderPrepError(); return; }
+    prepText = text;
+    renderPrepBrief(text, biz);
+  })
+  .catch(function(){ renderPrepError(); });
+}
+
+function renderPrepBrief(text, biz){
+  var body = $('prepBody');
+  var foot = $('prepFoot');
+  var note = $('prepFootNote');
+  if(!body) return;
+
+  // Parse sections
+  var sections = {
+    state: extractSection(text, 'STATE OF THE BUSINESS'),
+    talking: extractSection(text, 'TALKING POINTS'),
+    questions: extractSection(text, 'QUESTIONS TO ASK'),
+    action: extractSection(text, 'RECOMMENDED ACTION')
+  };
+
+  var html = '';
+
+  // State of business
+  if(sections.state){
+    html += '<div class="prep-section">';
+    html += '<div class="prep-sec-label">State of the business</div>';
+    html += '<div class="prep-summary">'+formatPrepText(sections.state)+'</div>';
+    html += '</div>';
+  }
+
+  // Talking points
+  if(sections.talking){
+    html += '<div class="prep-section">';
+    html += '<div class="prep-sec-label">Talking points &mdash; ranked by urgency</div>';
+    var tpLines = sections.talking.split('\n').filter(function(l){return l.trim();});
+    tpLines.forEach(function(line){
+      var cls='a', badgeCls='a', badgeText='Review';
+      if(/^CRITICAL:/i.test(line.trim())){ cls='r'; badgeCls='r'; badgeText='Critical'; }
+      else if(/^OPPORTUNITY:/i.test(line.trim())){ cls='g'; badgeCls='g'; badgeText='Opportunity'; }
+      var content = line.replace(/^(CRITICAL|REVIEW|OPPORTUNITY):\s*/i,'');
+      html += '<div class="prep-tp"><div class="prep-dot '+cls+'"></div><div style="flex:1">'+formatPrepText(content)+'</div><div class="prep-badge '+badgeCls+'">'+badgeText+'</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Questions
+  if(sections.questions){
+    html += '<div class="prep-section">';
+    html += '<div class="prep-sec-label">Questions to ask</div>';
+    var qLines = sections.questions.split('\n').filter(function(l){return l.trim();});
+    var qNum = 0;
+    qLines.forEach(function(line){
+      var content = line.replace(/^\d+[\.\)]\s*/,'').trim();
+      if(!content) return;
+      qNum++;
+      html += '<div class="prep-q"><div class="prep-qnum">'+qNum+'</div><div>'+formatPrepText(content)+'</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Action
+  if(sections.action){
+    html += '<div class="prep-section">';
+    html += '<div class="prep-sec-label">Recommended action</div>';
+    html += '<div class="prep-action">'+formatPrepText(sections.action)+'</div>';
+    html += '</div>';
+  }
+
+  body.innerHTML = html || '<div style="padding:1rem;font-size:13px;color:var(--mut)">Brief generated. Check the copy button below.</div>';
+
+  if(foot){ foot.style.display='flex'; }
+  if(note){ note.textContent = (S.period||'Current data')+' \u00B7 '+IND.l; }
+}
+
+function extractSection(text, header){
+  var re = new RegExp('\\*\\*'+header+'\\*\\*([\\s\\S]*?)(?=\\*\\*[A-Z ]+\\*\\*|$)', 'i');
+  var m = text.match(re);
+  return m ? m[1].trim() : '';
+}
+
+function formatPrepText(text){
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+}
+
+function renderPrepError(){
+  var body = $('prepBody');
+  if(body) body.innerHTML='<div class="prep-generating"><span style="color:var(--red)">Could not generate brief. Check your connection and try again.</span></div>';
+}
+
+function copyPrep(){
+  if(!prepText){ toast('Nothing to copy yet'); return; }
+  // Build plain text version
+  var plain = 'MEETING PREP: '+(S.bizName||IND.l)+'\n'+
+    new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'\n\n'+
+    prepText;
+  navigator.clipboard.writeText(plain).then(function(){
+    toast('Brief copied to clipboard');
+  }).catch(function(){
+    toast('Copy failed — try selecting text manually');
+  });
+}
+
+// Show/hide prep button with chat button
+var _origChatCheckShow = chatCheckShow;
+chatCheckShow = function(){
+  _origChatCheckShow();
+  var btn = $('prepBtn');
+  if(btn && currentUser && S.revenue>0) btn.style.display='flex';
+};
+
+// Also patch go() to show prep button
+var _prepOrigGo = go;
+go = function(){
+  _prepOrigGo();
+  var btn = $('prepBtn');
+  if(btn && currentUser) btn.style.display='flex';
+};
+
+// Reset prep when switching clients
+
 var chatHistory = [];
 var chatOpen = false;
 var chatTyping = false;
