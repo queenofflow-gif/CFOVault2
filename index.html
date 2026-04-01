@@ -3001,7 +3001,27 @@ function portSort(mode){
 
 function portOpenClient(id){
   hidePortfolio();
-  wsLoadClient(id);
+  // Check if we have the client data cached locally
+  var saved = wsGetClient(id);
+  if(saved && saved.s && saved.s.revenue > 0){
+    // Data is cached — load directly
+    wsLoadClient(id);
+  } else {
+    // Data not cached — try pulling from Supabase first
+    var db = wsDb();
+    if(db){
+      db.select('data').eq('id', id).eq('user_id', currentUser.id).single()
+      .then(function(res){
+        if(res.data && res.data.data){
+          wsSetClientLocal(id, res.data.data);
+        }
+        wsLoadClient(id);
+      })
+      .catch(function(){ wsLoadClient(id); });
+    } else {
+      wsLoadClient(id);
+    }
+  }
 }
 
 function showPortfolioAddClient(){
@@ -3240,6 +3260,8 @@ function wsLoadClient(id){
   wsSetActiveBadge(entry ? entry.name : null);
   renderWorkspaceList();
   closeWorkspace();
+  // Always hide portfolio when loading a client
+  hidePortfolio();
   // Reset chat and prep for the new client
   chatHistory = [];
   var msgs = $('chatMsgs'); if(msgs) msgs.innerHTML='';
