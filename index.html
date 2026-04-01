@@ -1392,14 +1392,15 @@ function parseXL(file){
   var reader = new FileReader();
   reader.onload = function(e){
     try{
-      var wb = XLSX.read(e.target.result, {type:'array'});
+      var wb = XLSX.read(e.target.result, {type:'array', cellFormula:false, cellNF:false, cellStyles:false});
       var msgs = [];
       var isN = function(v){ return typeof v==='number' && isFinite(v) && v!==0; };
       var pv  = function(v){
         if(isN(v)) return v;
         if(typeof v==='string'){
-          var s=v.replace(/[$, ]/g,'');
+          var s=v.replace(/[$, ]/g,'').trim();
           if(/^\([\d.]+\)$/.test(s)) return -parseFloat(s.slice(1,-1));
+          if(s.slice(-1)==='%') return parseFloat(s)/100;
           return parseFloat(s)||0;
         }
         return 0;
@@ -1441,7 +1442,7 @@ function parseXL(file){
       // Convert all sheets to arrays
       var sheets = {};
       wb.SheetNames.forEach(function(n){
-        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});
+        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:false});
       });
       var first = sheets[wb.SheetNames[0].toLowerCase().trim()];
       var findSh = function(){
@@ -1545,6 +1546,18 @@ function parseXL(file){
       if(merged.cogs)    S.cogs   =Math.round(merged.cogs.val);
       if(merged.labor)   S.labor  =Math.round(merged.labor.val);
       if(merged.opex)    S.opex   =Math.round(merged.opex.val);
+
+      // Double-count guard: some P&Ls have labor already inside Total COGS.
+      // When the parser also picks up the Salaries sheet, labor gets counted twice.
+      // Detection: combined gives negative GM, but stripping labor from cogs gives
+      // a plausible positive GM, and labor is a large share of cogs (>40%).
+      if(S.cogs>0 && S.labor>0 && S.revenue>0){
+        var combinedGM = (S.revenue - S.cogs - S.labor) / S.revenue;
+        var cogsOnlyGM = (S.revenue - S.cogs) / S.revenue;
+        if(combinedGM < -0.05 && cogsOnlyGM > 0.05 && S.labor / S.cogs > 0.4){
+          S.cogs = Math.max(0, S.cogs - S.labor);
+        }
+      }
       // Fallbacks
       if(!S.cogs&&S.revenue&&merged.gp) S.cogs=Math.round(S.revenue-merged.gp.val);
       if(!S.opex&&merged.gp&&merged.ni) S.opex=Math.round(merged.gp.val-S.cogs-S.labor-merged.ni.val);
