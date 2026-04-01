@@ -169,56 +169,6 @@ footer strong{color:var(--acc)}
 @media(max-width:900px){.twocol,.tcol,.mrow,.mrow4,.mrow3,.mrow2,.ind-grid{grid-template-columns:1fr}main{padding:1.25rem}header{padding:1rem}}
 @media print{.hbtn,.tnav-wrap,.ob-actions,.ai-btn,.addbtn,.rmbtn,.toast{display:none!important}body{background:#fff}}
 
-/* ── PORTFOLIO VIEW ── */
-#portfolio{display:none}
-#portfolio.on{display:block}
-.port-hero{background:var(--acc);padding:1.75rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
-.port-hero-left{}
-.port-hero-title{font-family:var(--serif);font-size:26px;color:#fff;font-weight:600;margin-bottom:.2rem}
-.port-hero-sub{font-size:13px;color:rgba(255,255,255,.65)}
-.port-summary{display:flex;gap:10px}
-.port-stat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:.65rem 1rem;text-align:center;min-width:80px}
-.port-stat-num{font-family:var(--serif);font-size:22px;color:#fff;font-weight:600;line-height:1}
-.port-stat-lbl{font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
-.port-stat-num.r{color:#fca5a5}
-.port-stat-num.a{color:#fcd34d}
-.port-stat-num.g{color:#86efac}
-.port-body{max-width:1320px;margin:0 auto;padding:1.5rem 2.5rem}
-.port-list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
-.port-list-title{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.1em}
-.port-sort{display:flex;gap:4px}
-.port-sort-btn{background:var(--surf);border:1px solid var(--bdr);color:var(--mut);font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:var(--sans);transition:all .12s}
-.port-sort-btn.on{background:var(--accL);border-color:var(--acc);color:var(--acc)}
-.port-add{background:var(--acc);border:none;color:#fff;font-size:12px;padding:6px 14px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:background .15s}
-.port-add:hover{background:var(--accM)}
-.port-clients{display:flex;flex-direction:column;gap:6px}
-.port-client{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:.8rem 1.1rem;display:grid;grid-template-columns:42px 1fr 100px 100px 90px 100px 28px;align-items:center;gap:14px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
-.port-client:hover{border-color:var(--acc);box-shadow:0 2px 8px rgba(42,92,69,.08)}
-.port-client.urgent{border-left:3px solid var(--red);border-radius:0 10px 10px 0}
-.port-client.caution{border-left:3px solid var(--amb);border-radius:0 10px 10px 0}
-.port-grade{width:38px;height:38px;border-radius:50%;border:2.5px solid;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:17px;font-weight:600;flex-shrink:0}
-.port-grade.A{border-color:var(--acc);color:var(--acc);background:var(--accL)}
-.port-grade.B{border-color:var(--blu);color:var(--blu);background:var(--bluL)}
-.port-grade.C{border-color:var(--amb);color:var(--amb);background:var(--ambL)}
-.port-grade.D{border-color:var(--red);color:var(--red);background:var(--redL)}
-.port-grade.x{border-color:var(--bdrS);color:var(--sub);background:var(--surf2);font-size:13px}
-.port-info{min-width:0}
-.port-name{font-size:14px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.port-ind{font-size:11px;color:var(--sub);margin-top:1px}
-.port-metric{text-align:right}
-.port-mval{font-size:13px;font-weight:500;font-family:var(--mono)}
-.port-mval.g{color:var(--grn)}.port-mval.a{color:var(--amb)}.port-mval.r{color:var(--red)}.port-mval.n{color:var(--mut)}
-.port-mlbl{font-size:10px;color:var(--sub);margin-top:1px}
-.port-flag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;text-align:center;white-space:nowrap}
-.port-flag.r{background:var(--redL);color:var(--red)}
-.port-flag.a{background:var(--ambL);color:var(--amb)}
-.port-flag.g{background:var(--accL);color:var(--acc)}
-.port-flag.x{color:var(--sub);font-weight:400}
-.port-arrow{color:var(--sub);font-size:14px;text-align:right}
-.port-empty{text-align:center;padding:3rem 1rem;color:var(--mut);font-size:14px}
-.port-empty-icon{font-size:32px;margin-bottom:.75rem;opacity:.4}
-@media(max-width:900px){.port-hero{padding:1.25rem}.port-body{padding:1rem}.port-client{grid-template-columns:38px 1fr 80px 80px;gap:8px}.port-client .port-flag,.port-client .port-arrow,.port-client .port-metric:last-of-type{display:none}.port-summary{flex-wrap:wrap}.port-stat{min-width:65px}}
-
 /* ── CHAT ASSISTANT ── */
 #chatBtn{position:fixed;bottom:1.75rem;right:1.75rem;width:52px;height:52px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:300;transition:transform .15s,background .15s;font-size:22px}
 #chatBtn:hover{background:var(--accM);transform:scale(1.07)}
@@ -432,7 +382,6 @@ footer strong{color:var(--acc)}
 <header>
   <span class="lmark">CFO Vault</span>
   <span class="ltag">CFO In Your Pocket</span>
-  <button class="hbtn" id="btnPortfolio" onclick="showPortfolio()" style="display:none;align-items:center;gap:5px">&#x25A6; Portfolio</button>
   <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
   <div id="activeClientBadge"></div>
   <div id="authUserArea"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
@@ -453,30 +402,6 @@ footer strong{color:var(--acc)}
   <button onclick="showAuth('login')">Sign in / Sign up</button>
 </div>
 <!-- ONBOARD -->
-<div id="portfolio">
-  <div class="port-hero">
-    <div class="port-hero-left">
-      <div class="port-hero-title">Your practice</div>
-      <div class="port-hero-sub" id="portHeroSub">Loading clients...</div>
-    </div>
-    <div class="port-summary" id="portSummary"></div>
-  </div>
-  <div class="port-body">
-    <div class="port-list-header">
-      <div class="port-list-title">All clients</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="port-sort">
-          <button class="port-sort-btn on" onclick="portSort('health')">Health</button>
-          <button class="port-sort-btn" onclick="portSort('name')">Name</button>
-          <button class="port-sort-btn" onclick="portSort('updated')">Recent</button>
-        </div>
-        <button class="port-add" onclick="showPortfolioAddClient()">+ Add client</button>
-      </div>
-    </div>
-    <div class="port-clients" id="portClients"></div>
-  </div>
-</div>
-
 <div id="onboard">
   <div class="ob-hero">
     <div class="ob-headline">Your finances,<br><em>finally explained.</em></div>
@@ -1467,15 +1392,14 @@ function parseXL(file){
   var reader = new FileReader();
   reader.onload = function(e){
     try{
-      var wb = XLSX.read(e.target.result, {type:'array', cellFormula:false, cellNF:false, cellStyles:false});
+      var wb = XLSX.read(e.target.result, {type:'array'});
       var msgs = [];
       var isN = function(v){ return typeof v==='number' && isFinite(v) && v!==0; };
       var pv  = function(v){
         if(isN(v)) return v;
         if(typeof v==='string'){
-          var s=v.replace(/[$, ]/g,'').trim();
+          var s=v.replace(/[$, ]/g,'');
           if(/^\([\d.]+\)$/.test(s)) return -parseFloat(s.slice(1,-1));
-          if(s.slice(-1)==='%') return parseFloat(s)/100;
           return parseFloat(s)||0;
         }
         return 0;
@@ -1517,7 +1441,7 @@ function parseXL(file){
       // Convert all sheets to arrays
       var sheets = {};
       wb.SheetNames.forEach(function(n){
-        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:false});
+        sheets[n.toLowerCase().trim()] = XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:null,raw:true});
       });
       var first = sheets[wb.SheetNames[0].toLowerCase().trim()];
       var findSh = function(){
@@ -1621,18 +1545,6 @@ function parseXL(file){
       if(merged.cogs)    S.cogs   =Math.round(merged.cogs.val);
       if(merged.labor)   S.labor  =Math.round(merged.labor.val);
       if(merged.opex)    S.opex   =Math.round(merged.opex.val);
-
-      // Double-count guard: some P&Ls have labor already inside Total COGS.
-      // When the parser also picks up the Salaries sheet, labor gets counted twice.
-      // Detection: combined gives negative GM, but stripping labor from cogs gives
-      // a plausible positive GM, and labor is a large share of cogs (>40%).
-      if(S.cogs>0 && S.labor>0 && S.revenue>0){
-        var combinedGM = (S.revenue - S.cogs - S.labor) / S.revenue;
-        var cogsOnlyGM = (S.revenue - S.cogs) / S.revenue;
-        if(combinedGM < -0.05 && cogsOnlyGM > 0.05 && S.labor / S.cogs > 0.4){
-          S.cogs = Math.max(0, S.cogs - S.labor);
-        }
-      }
       // Fallbacks
       if(!S.cogs&&S.revenue&&merged.gp) S.cogs=Math.round(S.revenue-merged.gp.val);
       if(!S.opex&&merged.gp&&merged.ni) S.opex=Math.round(merged.gp.val-S.cogs-S.labor-merged.ni.val);
@@ -2866,188 +2778,6 @@ function resetApp(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ── PORTFOLIO VIEW ────────────────────────────────────────────────
-var portSortMode = 'health';
-
-function portCalcHealth(s){
-  if(!s||!s.revenue) return null;
-  var rev=s.revenue, cogs=s.cogs||0, labor=s.labor||0, opex=s.opex||0;
-  var ind=INDS[s.industry]||INDS.other;
-  var gm=(rev-cogs-labor)/rev;
-  var net=(rev-cogs-labor-opex)/rev;
-  var lb=labor/rev;
-  var op=opex/rev;
-  var burn=s.avgMonthlyBurn||Math.round((cogs+labor+opex)/12);
-  var cash=s.currentCash||s.cashOnHand||0;
-  var netBurn=burn-(rev/12);
-  var runway=netBurn>0?cash/netBurn:99;
-  var score=100;
-  score-=Math.max(0,(ind.gm-gm)*120);
-  score-=Math.max(0,(ind.net-net)*100);
-  score-=Math.max(0,(lb-ind.lb)*80);
-  score-=Math.max(0,(op-ind.op)*60);
-  if(runway<1) score-=35;
-  else if(runway<2) score-=20;
-  else if(runway<3) score-=10;
-  score=Math.max(0,Math.min(100,score));
-  var grade=score>=75?'A':score>=55?'B':score>=35?'C':'D';
-  var flag='';
-  if(runway<1) flag='Runway critical';
-  else if(runway<2) flag='Low runway';
-  else if(gm<ind.gm-0.15) flag='Margin low';
-  else if(lb>ind.lb+0.15) flag='Labor high';
-  else if(op>ind.op+0.1) flag='OPEX high';
-  return {grade:grade,score:score,gm:gm,net:net,runway:runway,flag:flag,ind:ind};
-}
-
-function portGetClients(){
-  var idx=wsGetIndex();
-  return idx.map(function(w){
-    var saved=wsGetClient(w.id);
-    var s=saved&&saved.s?saved.s:null;
-    var h=s?portCalcHealth(s):null;
-    return {id:w.id,name:w.name,industry:w.industry||'other',updatedAt:w.updatedAt,s:s,health:h};
-  });
-}
-
-function showPortfolio(){
-  var portEl=$('portfolio'),onbEl=$('onboard'),conEl=$('content');
-  if(portEl) portEl.classList.add('on');
-  if(onbEl) onbEl.style.display='none';
-  if(conEl) conEl.classList.remove('on');
-  var cb=$('chatBtn'),pb=$('prepBtn');
-  if(cb) cb.style.display='none';
-  if(pb) pb.style.display='none';
-  if(chatOpen) toggleChat();
-  closePrep();
-  var portBtn=$('btnPortfolio');
-  if(portBtn) portBtn.style.display='none';
-  renderPortfolio();
-}
-
-function hidePortfolio(){
-  var portEl=$('portfolio');
-  if(portEl) portEl.classList.remove('on');
-  var portBtn=$('btnPortfolio');
-  if(portBtn) portBtn.style.display='flex';
-}
-
-function renderPortfolio(){
-  var clients=portGetClients();
-  var sub=$('portHeroSub'),summary=$('portSummary'),list=$('portClients');
-  if(!list) return;
-  var sorted=clients.slice();
-  if(portSortMode==='health'){
-    sorted.sort(function(a,b){
-      var ga=a.health?'DCBA'.indexOf(a.health.grade):-1;
-      var gb=b.health?'DCBA'.indexOf(b.health.grade):-1;
-      return gb-ga;
-    });
-  } else if(portSortMode==='name'){
-    sorted.sort(function(a,b){return a.name.localeCompare(b.name);});
-  } else {
-    sorted.sort(function(a,b){return (b.updatedAt||'').localeCompare(a.updatedAt||'');});
-  }
-  var counts={A:0,B:0,C:0,D:0};
-  var totalRev=0;
-  clients.forEach(function(c){
-    if(c.health) counts[c.health.grade]++;
-    if(c.s&&c.s.revenue) totalRev+=c.s.revenue;
-  });
-  var needAttn=counts.C+counts.D;
-  var healthy=counts.A+counts.B;
-  if(sub) sub.textContent=clients.length+' client'+(clients.length!==1?'s':'')+' \u00B7 Updated just now';
-  if(summary) summary.innerHTML=
-    '<div class="port-stat"><div class="port-stat-num r">'+needAttn+'</div><div class="port-stat-lbl">Need attention</div></div>'+
-    '<div class="port-stat"><div class="port-stat-num g">'+healthy+'</div><div class="port-stat-lbl">Healthy</div></div>'+
-    '<div class="port-stat"><div class="port-stat-num">'+clients.length+'</div><div class="port-stat-lbl">Clients</div></div>'+
-    (totalRev>0?'<div class="port-stat"><div class="port-stat-num">$'+Math.round(totalRev/1000)+'K</div><div class="port-stat-lbl">Revenue</div></div>':'');
-  if(sorted.length===0){
-    list.innerHTML='<div class="port-empty"><div class="port-empty-icon">&#x1F4C2;</div><div>No clients yet \u2014 add your first client to get started.</div></div>';
-    return;
-  }
-  list.innerHTML=sorted.map(function(c){
-    var h=c.health;
-    var grade=h?h.grade:'x';
-    var urgClass=grade==='D'?'urgent':grade==='C'?'caution':'';
-    var gmVal=h?(h.gm*100).toFixed(1)+'%':'\u2014';
-    var gmCls=h?(h.gm>0.3?'g':h.gm>0.1?'a':'r'):'n';
-    var rwVal=h?(h.runway>=99?'Positive':h.runway.toFixed(1)+' mo'):'\u2014';
-    var rwCls=h?(h.runway>=4?'g':h.runway>=2?'a':'r'):'n';
-    var netVal=h?(h.net*100).toFixed(1)+'%':'\u2014';
-    var netCls=h?(h.net>0.1?'g':h.net>0?'a':'r'):'n';
-    var flagHtml=h&&h.flag?
-      '<div class="port-flag '+(grade==='D'?'r':grade==='C'?'a':'g')+'">'+h.flag+'</div>':
-      '<div class="port-flag '+(h?'g':'x')+'">'+(h?'On track':'\u2014')+'</div>';
-    var indName=(INDS[c.industry]||INDS.other).l;
-    var updated=c.updatedAt?relativeTime(c.updatedAt):'No data yet';
-    return '<div class="port-client '+urgClass+'" onclick="portOpenClient(\''+c.id+'\')">'+
-      '<div class="port-grade '+grade+'">'+(h?h.grade:'?')+'</div>'+
-      '<div class="port-info"><div class="port-name">'+escHtml(c.name)+'</div><div class="port-ind">'+indName+' \u00B7 '+updated+'</div></div>'+
-      '<div class="port-metric"><div class="port-mval '+gmCls+'">'+gmVal+'</div><div class="port-mlbl">Gross margin</div></div>'+
-      '<div class="port-metric"><div class="port-mval '+rwCls+'">'+rwVal+'</div><div class="port-mlbl">Runway</div></div>'+
-      '<div class="port-metric"><div class="port-mval '+netCls+'">'+netVal+'</div><div class="port-mlbl">Net margin</div></div>'+
-      flagHtml+'<div class="port-arrow">\u203A</div></div>';
-  }).join('');
-}
-
-function portSort(mode){
-  portSortMode=mode;
-  document.querySelectorAll('.port-sort-btn').forEach(function(b){
-    b.classList.toggle('on',b.textContent.toLowerCase()===mode||(mode==='health'&&b.textContent==='Health'));
-  });
-  renderPortfolio();
-}
-
-function portOpenClient(id){
-  hidePortfolio();
-  // Check if we have the client data cached locally
-  var saved = wsGetClient(id);
-  if(saved && saved.s && saved.s.revenue > 0){
-    // Data is cached — load directly
-    wsLoadClient(id);
-  } else {
-    // Data not cached — try pulling from Supabase first
-    var db = wsDb();
-    if(db){
-      db.select('data').eq('id', id).eq('user_id', currentUser.id).single()
-      .then(function(res){
-        if(res.data && res.data.data){
-          wsSetClientLocal(id, res.data.data);
-        }
-        wsLoadClient(id);
-      })
-      .catch(function(){ wsLoadClient(id); });
-    } else {
-      wsLoadClient(id);
-    }
-  }
-}
-
-function showPortfolioAddClient(){
-  hidePortfolio();
-  openWorkspace();
-  setTimeout(function(){ var inp=$('wsNewName'); if(inp) inp.focus(); },300);
-}
-
-function relativeTime(iso){
-  if(!iso) return '';
-  var diff=Date.now()-new Date(iso).getTime();
-  var mins=Math.floor(diff/60000);
-  if(mins<2) return 'Just now';
-  if(mins<60) return mins+'m ago';
-  var hrs=Math.floor(mins/60);
-  if(hrs<24) return hrs+'h ago';
-  var days=Math.floor(hrs/24);
-  if(days===1) return 'Yesterday';
-  if(days<7) return days+' days ago';
-  return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-}
-
-function escHtml(s){
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 // ── WORKSPACE SYSTEM (Cloud-synced via Supabase) ──────────────────
 // Primary store: Supabase `workspaces` table (keyed by user_id)
 // Local cache:   localStorage (fast reads, offline fallback)
@@ -3260,8 +2990,6 @@ function wsLoadClient(id){
   wsSetActiveBadge(entry ? entry.name : null);
   renderWorkspaceList();
   closeWorkspace();
-  // Always hide portfolio when loading a client
-  hidePortfolio();
   // Reset chat and prep for the new client
   chatHistory = [];
   var msgs = $('chatMsgs'); if(msgs) msgs.innerHTML='';
@@ -3401,49 +3129,24 @@ function setUser(user){
     if(banner) banner.classList.remove('on');
     var btnC = $('btnClients');
     if(btnC) btnC.style.display='flex';
-    // Pull workspaces from cloud on login, then route appropriately
+    // Pull workspaces from cloud on login, then restore active
     wsCloudPull(function(ok){
       renderWorkspaceList();
-      var idx = wsGetIndex();
-      var clientsWithData = idx.filter(function(w){
-        var saved = wsGetClient(w.id);
-        return saved && saved.s && saved.s.revenue > 0;
-      });
-      // Show portfolio button
-      var portBtn = $('btnPortfolio');
-      if(portBtn) portBtn.style.display='flex';
-      // Routing logic
-      if(clientsWithData.length >= 2){
-        // 2+ clients with data → show portfolio
-        showPortfolio();
-      } else if(clientsWithData.length === 1){
-        // Exactly 1 client with data → go straight to that dashboard
-        var w = clientsWithData[0];
-        wsActiveId = w.id;
-        localStorage.setItem(WS_ACTIVE_KEY, w.id);
-        var saved = wsGetClient(w.id);
-        Object.assign(S, saved.s);
-        if(saved.pt) PT = saved.pt;
-        IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
-        wsSetActiveBadge(w.name);
-        go();
-        chatCheckShow();
-      } else {
-        // No data yet → restore last active or show onboarding
-        var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
-        if(savedActiveId){
-          var entry = idx.find(function(w){ return w.id===savedActiveId; });
-          if(entry){
-            wsActiveId = savedActiveId;
-            var saved = wsGetClient(savedActiveId);
-            if(saved && saved.s && saved.s.revenue>0){
-              Object.assign(S, saved.s);
-              if(saved.pt) PT = saved.pt;
-              IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
-              wsSetActiveBadge(entry.name);
-              go();
-              chatCheckShow();
-            }
+      // Restore active workspace if one was previously open
+      var savedActiveId = localStorage.getItem(WS_ACTIVE_KEY);
+      if(savedActiveId){
+        var idx = wsGetIndex();
+        var entry = idx.find(function(w){ return w.id===savedActiveId; });
+        if(entry){
+          wsActiveId = savedActiveId;
+          var saved = wsGetClient(savedActiveId);
+          if(saved && saved.s && saved.s.revenue>0){
+            Object.assign(S, saved.s);
+            if(saved.pt) PT = saved.pt;
+            IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+            wsSetActiveBadge(entry.name);
+            go();
+            chatCheckShow();
           }
         }
       }
@@ -3456,9 +3159,6 @@ function setUser(user){
     wsActiveId = null;
     localStorage.removeItem(WS_ACTIVE_KEY);
     wsSetActiveBadge(null);
-    // Hide portfolio
-    var portEl=$('portfolio'); if(portEl) portEl.classList.remove('on');
-    var portBtn=$('btnPortfolio'); if(portBtn) portBtn.style.display='none';
   }
 }
 
