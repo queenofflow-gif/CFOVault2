@@ -2050,16 +2050,43 @@ function renderSnap(){
 }
 function mc(col,label,val,sub,vc){return'<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+'</div><div class="ms">'+sub+'</div></div>';}
 
+// Shared health grade calculation — used by both dashboard and portfolio
+function calcHealthGrade(s, ind){
+  // s = state object with revenue/cogs/labor/opex
+  // ind = industry benchmark object
+  if(!s || !s.revenue) return {grade:'D', score:0, label:'No data'};
+  var gm = (s.revenue - s.cogs - s.labor) / s.revenue;
+  var net = (s.revenue - s.cogs - s.labor - s.opex) / s.revenue;
+  var lb = s.revenue ? s.labor / s.revenue : 0;
+  var ob = s.revenue ? s.opex / s.revenue : 0;
+  var p = 0;
+  if(gm >= ind.gm) p+=35; else if(gm >= ind.gm*.75) p+=22; else if(gm > 0) p+=10;
+  if(net >= ind.net) p+=30; else if(net >= ind.net*.5) p+=18; else if(net >= 0) p+=8;
+  if(lb <= ind.lb) p+=20; else if(lb <= ind.lb*1.3) p+=12; else p+=4;
+  if(ob <= ind.op) p+=15; else if(ob <= ind.op*1.3) p+=9; else p+=3;
+  var grade = p>=80?'A':p>=60?'B':p>=40?'C':'D';
+  var label = p>=80?'Healthy — strong margins, on benchmark':p>=60?'Good — solid, one or two areas to improve':p>=40?'Needs attention — margin pressure':'At risk — significant issues to address';
+  // Determine most urgent flag for portfolio view
+  var flag = '';
+  var burn = s.avgMonthlyBurn || Math.round((s.cogs+s.labor+s.opex)/12);
+  var cash = s.currentCash || s.cashOnHand || 0;
+  var netBurn = burn - (s.revenue/12);
+  var runway = netBurn > 0 ? cash/netBurn : 99;
+  if(runway < 1) flag = 'Runway critical';
+  else if(runway < 2) flag = 'Low runway';
+  else if(gm < ind.gm - 0.15) flag = 'Margin low';
+  else if(lb > ind.lb + 0.15) flag = 'Labor high';
+  else if(ob > ind.op + 0.1) flag = 'OPEX high';
+  return {grade:grade, score:p, label:label, gm:gm, net:net, lb:lb, runway:runway, flag:flag};
+}
+
 function renderScore(){
-  var a=getAdj(),n=S.revenue?a.bNet/S.revenue:0,lb=S.revenue?S.labor/S.revenue:0,ob=S.revenue?S.opex/S.revenue:0;
-  var p=0;
-  if(a.bGMp>=IND.gm)p+=35;else if(a.bGMp>=IND.gm*.75)p+=22;else if(a.bGMp>0)p+=10;
-  if(n>=IND.net)p+=30;else if(n>=IND.net*.5)p+=18;else if(n>=0)p+=8;
-  if(lb<=IND.lb)p+=20;else if(lb<=IND.lb*1.3)p+=12;else p+=4;
-  if(ob<=IND.op)p+=15;else if(ob<=IND.op*1.3)p+=9;else p+=3;
-  var sc=p>=80?{g:'A',c:'sA',l:'Healthy — strong margins, on benchmark'}:p>=60?{g:'B',c:'sB',l:'Good — solid, one or two areas to improve'}:p>=40?{g:'C',c:'sC',l:'Needs attention — margin pressure'}:{g:'D',c:'sD',l:'At risk — significant issues to address'};
-  $('scoreRing').innerHTML='<div class="score-ring '+sc.c+'">'+sc.g+'</div>';
-  $('scoreLabel').textContent=sc.l;
+  var a=getAdj(), n=S.revenue?a.bNet/S.revenue:0;
+  // Use shared function with current S and IND
+  var h = calcHealthGrade({revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex,avgMonthlyBurn:S.avgMonthlyBurn,currentCash:S.currentCash,cashOnHand:S.cashOnHand}, IND);
+  var cMap = {A:'sA',B:'sB',C:'sC',D:'sD'};
+  $('scoreRing').innerHTML='<div class="score-ring '+cMap[h.grade]+'">'+h.grade+'</div>';
+  $('scoreLabel').textContent=h.label;
 }
 
 function renderBenchmarks(){
@@ -2876,33 +2903,8 @@ var portSortMode = 'health';
 
 function portCalcHealth(s){
   if(!s||!s.revenue) return null;
-  var rev=s.revenue, cogs=s.cogs||0, labor=s.labor||0, opex=s.opex||0;
-  var ind=INDS[s.industry]||INDS.other;
-  var gm=(rev-cogs-labor)/rev;
-  var net=(rev-cogs-labor-opex)/rev;
-  var lb=labor/rev;
-  var op=opex/rev;
-  var burn=s.avgMonthlyBurn||Math.round((cogs+labor+opex)/12);
-  var cash=s.currentCash||s.cashOnHand||0;
-  var netBurn=burn-(rev/12);
-  var runway=netBurn>0?cash/netBurn:99;
-  var score=100;
-  score-=Math.max(0,(ind.gm-gm)*120);
-  score-=Math.max(0,(ind.net-net)*100);
-  score-=Math.max(0,(lb-ind.lb)*80);
-  score-=Math.max(0,(op-ind.op)*60);
-  if(runway<1) score-=35;
-  else if(runway<2) score-=20;
-  else if(runway<3) score-=10;
-  score=Math.max(0,Math.min(100,score));
-  var grade=score>=75?'A':score>=55?'B':score>=35?'C':'D';
-  var flag='';
-  if(runway<1) flag='Runway critical';
-  else if(runway<2) flag='Low runway';
-  else if(gm<ind.gm-0.15) flag='Margin low';
-  else if(lb>ind.lb+0.15) flag='Labor high';
-  else if(op>ind.op+0.1) flag='OPEX high';
-  return {grade:grade,score:score,gm:gm,net:net,runway:runway,flag:flag,ind:ind};
+  var ind = INDS[s.industry]||INDS.other;
+  return calcHealthGrade(s, ind);
 }
 
 function portGetClients(){
