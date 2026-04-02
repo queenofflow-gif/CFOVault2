@@ -439,6 +439,7 @@ footer strong{color:var(--acc)}
   <button id="btnLogin" onclick="showAuth('login')" style="display:none">Sign in</button>
   <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
   <button class="hbtn" id="btnExport" onclick="exportData()">&#x1F4E4; Export data</button>
+  <button class="hbtn" id="btnXLImport" onclick="authGuard(function(){document.getElementById('xlFi').click();})" style="display:none">&#x1F4CA; Import P&amp;L</button>
   <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()">&#x1F4E5; Load saved</button>
   <button class="hbtn pri" id="btnPDF" onclick="exportPDF()">&#x2B07; Export PDF</button>
   <button class="hbtn" id="btnReset" onclick="resetApp()">&#x21A9; Start over</button>
@@ -1780,7 +1781,7 @@ function parseXL(file){
         if(found.length<3) showStatus('warn','Partial import ('+found.length+' of 4 fields). Some tools will use estimates for missing fields.');
         $('onboard').style.display='none';
         $('content').classList.add('on');
-        ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
+        ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
         go();
       }
     } catch(err){
@@ -1811,7 +1812,7 @@ function loadDemo(){
   PT = [];
   $('onboard').style.display='none';
   $('content').classList.add('on');
-  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
+  ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
   showStatus('ok','Sample data loaded: '+S.bizName+' — replace with your real P&L to get accurate analysis.');
   go();
 }
@@ -1969,7 +1970,7 @@ function go(){
   IND.key = S.industry;
   periodData={revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex};
   $('content').classList.add('on');
-  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(id){$(id).style.display='block';});
+  ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(id){var b=$(id);if(b)b.style.display='block';});
   var pLabel='';
   if(S.periodMonths&&S.periodMonths<12){
     pLabel=' · '+S.periodMonths+'-month data (annualized)';
@@ -2857,7 +2858,7 @@ function resetApp(){
   $('content').classList.remove('on');
   $('onboard').style.display='block';
   $('parseStatus').style.display='none';
-  ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(id){$(id).style.display='none';});
+  ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(id){var b=$(id);if(b)b.style.display='none';});
   document.querySelectorAll('.ind-chip').forEach(function(c){c.classList.remove('sel');});
   var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn');
   if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
@@ -3004,46 +3005,14 @@ function portSort(mode){
 }
 
 function portOpenClient(id){
-  // Step 1: hide portfolio immediately
+  // Hide portfolio first
   var portEl=$('portfolio');
   if(portEl) portEl.classList.remove('on');
+  // Show portfolio button so user can get back
   var portBtn=$('btnPortfolio');
   if(portBtn) portBtn.style.display='flex';
-
-  // Step 2: try local cache first
-  var saved = wsGetClient(id);
-  if(saved && saved.s && saved.s.revenue > 0){
-    wsLoadClient(id);
-    return;
-  }
-
-  // Step 3: not in local cache — fetch from Supabase then load
-  var db = wsDb();
-  if(!db){ wsLoadClient(id); return; }
-
-  // Show a loading state while fetching
-  var conEl=$('content'),onbEl=$('onboard');
-  if(conEl) conEl.classList.remove('on');
-  if(onbEl){ onbEl.style.display='block'; onbEl.innerHTML='<div style="padding:3rem;text-align:center;color:var(--mut);font-size:14px">Loading client...</div>'; }
-
-  supaClient.from('workspaces')
-    .select('data')
-    .eq('id', id)
-    .eq('user_id', currentUser.id)
-    .single()
-    .then(function(res){
-      if(res.data && res.data.data){
-        wsSetClientLocal(id, res.data.data);
-      }
-      // Restore onboard before wsLoadClient takes over
-      var idx=wsGetIndex();
-      var entry=idx.find(function(w){return w.id===id;});
-      if(onbEl && entry) onbEl.innerHTML=''; // wsLoadClient will set it properly
-      wsLoadClient(id);
-    })
-    .catch(function(){
-      wsLoadClient(id);
-    });
+  // Load the client — wsLoadClient handles everything
+  wsLoadClient(id);
 }
 
 function showPortfolioAddClient(){
@@ -3256,7 +3225,7 @@ function wsLoadClient(id){
     $('onboard').style.display='none';
     $('parseStatus').style.display='none';
     $('content').classList.add('on');
-    ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){$(bid).style.display='block';});
+    ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
     var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
     if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
     if(aiLoad){aiLoad.classList.remove('show');}
@@ -3268,7 +3237,7 @@ function wsLoadClient(id){
     $('content').classList.remove('on');
     $('onboard').style.display='block';
     $('parseStatus').style.display='none';
-    ['btnSave','btnExport','btnImport','btnPDF','btnReset'].forEach(function(bid){$(bid).style.display='none';});
+    ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='none';});
     var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
     if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
     if(aiLoad){aiLoad.classList.remove('show');}
