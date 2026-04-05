@@ -354,22 +354,54 @@ footer strong{color:var(--acc)}
 
 /* ── SIDEBAR LAYOUT ── */
 body{display:flex;flex-direction:column}
-#appShell{display:flex;flex:1;overflow:hidden;height:calc(100vh - 57px)}
-#appSidebar{width:220px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;height:100%}
-.sb-logo{padding:16px 16px 14px;border-bottom:1px solid var(--bdr);font-family:var(--serif);font-size:18px;color:var(--acc);font-weight:600}
-.sb-client{margin:10px 10px 0;background:var(--accL);border:1px solid #aecfbd;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
+/* ── SIDEBAR LAYOUT ── */
+#appShell{display:flex;min-height:calc(100vh - 57px)}
+#appSidebar{
+  width:220px;flex-shrink:0;
+  background:var(--surf);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;
+  height:100vh;
+  overflow-y:auto;overflow-x:hidden;
+  transition:width .22s ease;
+}
+/* Collapsed state */
+#appSidebar.collapsed{width:52px}
+#appSidebar.collapsed .sb-label-text,
+#appSidebar.collapsed .sb-client-label,
+#appSidebar.collapsed .sb-client-name,
+#appSidebar.collapsed .sb-client-sub,
+#appSidebar.collapsed .sb-section-label,
+#appSidebar.collapsed .sb-user-name,
+#appSidebar.collapsed .sb-user-role,
+#appSidebar.collapsed .sb-logo-text{display:none}
+#appSidebar.collapsed .sb-nav-item{padding:9px;justify-content:center}
+#appSidebar.collapsed .sb-client{margin:8px 6px 0;padding:8px 6px;display:flex;justify-content:center}
+#appSidebar.collapsed .sb-bottom{padding:6px}
+#appSidebar.collapsed .sb-user{padding:6px;justify-content:center}
+#appSidebar.collapsed #sbPreData .sb-nav-item{justify-content:center;padding:9px}
+/* Logo row */
+.sb-logo{padding:14px 14px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sb-logo-text{font-family:var(--serif);font-size:18px;color:var(--acc);font-weight:600}
+.sb-collapse-btn{background:none;border:1px solid var(--bdr);border-radius:6px;width:26px;height:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);flex-shrink:0;transition:all .15s}
+.sb-collapse-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+/* Client switcher */
+.sb-client{margin:10px 10px 0;background:var(--accL);border:1px solid #aecfbd;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;position:relative}
 .sb-client:hover{background:#d4e8da}
 .sb-client-label{font-size:9px;color:var(--acc);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;font-weight:600}
 .sb-client-name{font-size:13px;color:var(--acc);font-weight:600;display:flex;align-items:center;justify-content:space-between}
 .sb-client-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acc);margin-right:5px;flex-shrink:0}
 .sb-client-sub{font-size:10px;color:var(--accM);margin-top:2px}
+.sb-client-count{display:inline-flex;align-items:center;justify-content:center;background:var(--acc);color:#fff;border-radius:10px;font-size:9px;font-weight:600;padding:1px 6px;margin-left:5px;letter-spacing:0}
+/* Nav */
 .sb-section-label{font-size:9px;color:var(--sub);letter-spacing:.14em;text-transform:uppercase;padding:12px 16px 5px;font-weight:500}
 .sb-nav-item{padding:9px 16px;font-size:13px;color:var(--mut);display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .12s;border-left:2px solid transparent;border-right:none;border-top:none;border-bottom:none;width:100%;text-align:left;background:none;font-family:var(--sans)}
 .sb-nav-item:hover{color:var(--acc);background:var(--accL)}
 .sb-nav-item.on{color:var(--acc);background:var(--accL);border-left-color:var(--acc);font-weight:500}
 .sb-nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-label-text{}
 .sb-spacer{flex:1}
-.sb-bottom{padding:10px;border-top:1px solid var(--bdr)}
+.sb-bottom{padding:10px;border-top:1px solid var(--bdr);flex-shrink:0}
 .sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .12s}
 .sb-user:hover{background:var(--surf2)}
 .sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;font-weight:600;flex-shrink:0}
@@ -377,7 +409,7 @@ body{display:flex;flex-direction:column}
 .sb-user-role{font-size:10px;color:var(--sub)}
 #appSidebar .sb-tools{display:none}
 #appSidebar .sb-tools.on{display:block}
-#appMain{flex:1;overflow-y:auto}
+#appMain{flex:1;min-width:0}
 main{max-width:none;padding:1.75rem 2rem}
 .tnav-wrap{display:none!important}
 .tp{display:none}.tp.on{display:block;animation:tpIn .18s ease}
@@ -482,13 +514,16 @@ main{max-width:none;padding:1.75rem 2rem}
 
 <div id="appShell">
 <div id="appSidebar">
-  <div class="sb-logo">CFO Vault</div>
+  <div class="sb-logo">
+    <span class="sb-logo-text">CFO Vault</span>
+    <button class="sb-collapse-btn" id="sbCollapseBtn" onclick="toggleSidebar()" title="Collapse sidebar">☰</button>
+  </div>
 
-  <div class="sb-client" onclick="openWorkspace()">
+  <div class="sb-client" onclick="openWorkspace()" title="Switch client">
     <div class="sb-client-label">Active Client</div>
     <div class="sb-client-name">
-      <span><span class="sb-client-dot"></span><span id="sbClientName">No client selected</span></span>
-      <span style="font-size:10px;color:var(--accM)">⌄</span>
+      <span><span class="sb-client-dot"></span><span id="sbClientName">No client</span></span>
+      <span id="sbClientCount" class="sb-client-count" style="display:none">0</span>
     </div>
     <div class="sb-client-sub" id="sbClientSub">Click to switch</div>
   </div>
@@ -500,9 +535,9 @@ main{max-width:none;padding:1.75rem 2rem}
 
   <div id="sbPreData">
     <div class="sb-section-label">Get started</div>
-    <button class="sb-nav-item" onclick="authGuard(function(){document.getElementById('xlFi').click();})"><span class="sb-nav-icon">📊</span>Import P&amp;L</button>
-    <button class="sb-nav-item" onclick="loadDemo()"><span class="sb-nav-icon">🎯</span>Try demo</button>
-    <button class="sb-nav-item" onclick="document.getElementById('jFi').click()"><span class="sb-nav-icon">📥</span>Load saved</button>
+    <button class="sb-nav-item" onclick="authGuard(function(){document.getElementById('xlFi').click();})"><span class="sb-nav-icon">📊</span><span class="sb-label-text">Import P&amp;L</span></button>
+    <button class="sb-nav-item" onclick="loadDemo()"><span class="sb-nav-icon">🎯</span><span class="sb-label-text">Try demo</span></button>
+    <button class="sb-nav-item" onclick="document.getElementById('jFi').click()"><span class="sb-nav-icon">📥</span><span class="sb-label-text">Load saved</span></button>
   </div>
 
   <div class="sb-spacer"></div>
@@ -514,7 +549,7 @@ main{max-width:none;padding:1.75rem 2rem}
         <div class="sb-user-role"><a href="#" onclick="authSignOut();return false;" style="color:var(--sub);text-decoration:none;font-size:10px">Sign out</a></div>
       </div>
     </div>
-    <button class="sb-nav-item" id="sbLoginBtn" onclick="showAuth('login')" style="display:flex"><span class="sb-nav-icon">🔑</span>Sign in</button>
+    <button class="sb-nav-item" id="sbLoginBtn" onclick="showAuth('login')" style="display:flex"><span class="sb-nav-icon">🔑</span><span class="sb-label-text">Sign in</span></button>
   </div>
 </div>
 <div id="appMain">
@@ -2046,7 +2081,7 @@ function buildToolNav(){
       var b=document.createElement('button');
       b.className='sb-nav-item'+(t.k===AT?' on':'');
       b.id='sbnav-'+t.k;
-      b.innerHTML='<span class="sb-nav-icon">'+t.i+'</span>'+t.l;
+      b.innerHTML='<span class="sb-nav-icon">'+t.i+'</span><span class="sb-label-text">'+t.l+'</span>';
       b.onclick=function(){
         AT=t.k;
         document.querySelectorAll('.sb-nav-item').forEach(function(x){x.classList.remove('on');});
@@ -3283,8 +3318,23 @@ function wsSetActiveBadge(name){
   }
   // Update sidebar client switcher
   var sbN=$('sbClientName'),sbS=$('sbClientSub');
-  if(sbN) sbN.textContent = name||'No client selected';
-  if(sbS) sbS.textContent = name ? name+' · Click to switch' : 'Click to switch';
+  if(sbN) sbN.textContent = name||'No client';
+  if(sbS) sbS.textContent = name ? 'Click to switch' : 'Click to switch';
+  // Update client count badge
+  sbUpdateClientCount();
+}
+
+function sbUpdateClientCount(){
+  var idx = wsGetIndex ? wsGetIndex() : [];
+  var count = idx ? idx.length : 0;
+  var badge = $('sbClientCount');
+  if(!badge) return;
+  if(count > 0){
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 // Save current S + PT into the active workspace slot
@@ -3517,6 +3567,7 @@ function setUser(user){
     // Pull workspaces from cloud on login, then route appropriately
     wsCloudPull(function(ok){
       renderWorkspaceList();
+      sbUpdateClientCount();
       var idx = wsGetIndex();
       var clientsWithData = idx.filter(function(w){
         var saved = wsGetClient(w.id);
@@ -4039,6 +4090,21 @@ go = function(){
 };
 
 // Also show when user logs in and has active workspace
+function toggleSidebar(){
+  var sb=$('appSidebar');
+  if(!sb) return;
+  var collapsed = sb.classList.toggle('collapsed');
+  localStorage.setItem('sbCollapsed', collapsed ? '1' : '0');
+}
+
+// Restore sidebar state on load
+(function(){
+  if(localStorage.getItem('sbCollapsed')==='1'){
+    var sb=$('appSidebar');
+    if(sb) sb.classList.add('collapsed');
+  }
+})();
+
 function chatCheckShow(){
   var btn = $('chatBtn');
   if(btn && currentUser && S.revenue>0) btn.style.display='flex';
