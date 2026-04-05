@@ -23,15 +23,15 @@
   --mono:'IBM Plex Mono',monospace;
   --serif:'Playfair Display',Georgia,serif;
 }
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
-header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:1.1rem 2.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:1.1rem 2.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
 .lmark{font-family:var(--serif);font-size:20px;color:var(--acc);font-weight:600}
 .ltag{font-size:11px;color:var(--sub);letter-spacing:.1em;text-transform:uppercase;margin-right:auto}
 .hbtn{background:var(--surf);border:1px solid var(--bdrS);color:var(--mut);font-size:12px;padding:5px 13px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s;display:none;white-space:nowrap}
 .hbtn:hover{border-color:var(--acc);color:var(--acc);background:var(--accL)}
 .hbtn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 .hbtn.pri:hover{background:var(--accM)}
-main{max-width:1320px;margin:0 auto;padding:2rem 2.5rem}
+main{max-width:1320px;margin:0 auto}
 /* ONBOARDING */
 #onboard{margin-bottom:2rem}
 .ob-hero{background:var(--acc);border-radius:16px 16px 0 0;padding:2.5rem 3rem}
@@ -164,7 +164,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .cw{position:relative;width:100%}
 hr{border:none;border-top:1px solid var(--bdr);margin:1.25rem 0}
 #content{display:none}#content.on{display:block}
-footer{text-align:center;padding:1.75rem;border-top:1px solid var(--bdr);color:var(--sub);font-size:12px;margin-top:2rem;background:var(--surf)}
+footer{text-align:center;padding:1.75rem;border-top:1px solid var(--bdr);color:var(--sub);font-size:12px;background:var(--surf);flex-shrink:0}
 footer strong{color:var(--acc)}
 @media(max-width:900px){.twocol,.tcol,.mrow,.mrow4,.mrow3,.mrow2,.ind-grid{grid-template-columns:1fr}main{padding:1.25rem}header{padding:1rem}}
 @media print{.hbtn,.tnav-wrap,.ob-actions,.ai-btn,.addbtn,.rmbtn,.toast{display:none!important}body{background:#fff}}
@@ -351,6 +351,46 @@ footer strong{color:var(--acc)}
 #gateBanner{display:none;background:var(--accL);border:1px solid #aecfbd;border-radius:9px;padding:.75rem 1.1rem;margin-bottom:1.25rem;font-size:13px;color:var(--accD);align-items:center;gap:10px}
 #gateBanner.on{display:flex}
 #gateBanner button{background:var(--acc);border:none;color:#fff;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
+
+/* ── SIDEBAR LAYOUT ── */
+#appShell{display:flex;overflow:hidden;height:calc(100vh - 57px)}
+#appSidebar{
+  width:220px;flex-shrink:0;
+  background:var(--surf);
+  border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  height:100%;
+}
+.sb-logo{padding:16px 16px 14px;border-bottom:1px solid var(--bdr);font-family:var(--serif);font-size:18px;color:var(--acc);font-weight:600}
+.sb-client{margin:10px 10px 0;background:var(--accL);border:1px solid #aecfbd;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.sb-client:hover{background:#d4e8da}
+.sb-client-label{font-size:9px;color:var(--acc);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;font-weight:600}
+.sb-client-name{font-size:13px;color:var(--acc);font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.sb-client-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--acc);margin-right:5px;flex-shrink:0}
+.sb-client-sub{font-size:10px;color:var(--accM);margin-top:2px}
+.sb-client-arrow{font-size:10px;color:var(--accM);transition:transform .2s}
+.sb-section-label{font-size:9px;color:var(--sub);letter-spacing:.14em;text-transform:uppercase;padding:14px 16px 5px;font-weight:500}
+.sb-nav-item{padding:9px 16px;font-size:13px;color:var(--mut);display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .12s;border-left:2px solid transparent;border-right:none;border-top:none;border-bottom:none;width:100%;text-align:left;background:none;font-family:var(--sans)}
+.sb-nav-item:hover{color:var(--acc);background:var(--accL)}
+.sb-nav-item.on{color:var(--acc);background:var(--accL);border-left-color:var(--acc);font-weight:500}
+.sb-nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-spacer{flex:1}
+.sb-bottom{padding:10px;border-top:1px solid var(--bdr)}
+.sb-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .12s}
+.sb-user:hover{background:var(--surf2)}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;font-weight:600;flex-shrink:0}
+.sb-user-name{font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:10px;color:var(--sub)}
+#appMain{flex:1;overflow-y:auto;padding:2rem 2.5rem;height:100%}
+.tnav-wrap{display:none!important}
+#appSidebar .sb-tools{display:none}
+#appSidebar .sb-tools.on{display:block}
+.tp{display:none}.tp.on{display:block;animation:tpFade .18s ease}
+@keyframes tpFade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){#appSidebar{display:none}#appMain{padding:1.25rem}}
+@media print{#appSidebar{display:none}}
+
 </style>
 </head>
 <body>
@@ -446,6 +486,71 @@ footer strong{color:var(--acc)}
 </header>
 <input type="file" id="xlFi" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jFi" accept=".json" style="display:none">
+
+<div id="appShell">
+<!-- ── PERSISTENT SIDEBAR ── -->
+<div id="appSidebar">
+  <div class="sb-logo">CFO Vault</div>
+
+  <!-- Client switcher — mirrors existing workspace functionality -->
+  <div class="sb-client" onclick="openWorkspace()" id="sbClientBtn">
+    <div class="sb-client-label">Active Client</div>
+    <div class="sb-client-name">
+      <span><span class="sb-client-dot"></span><span id="sbClientName">No client selected</span></span>
+      <span class="sb-client-arrow">⌄</span>
+    </div>
+    <div class="sb-client-sub" id="sbClientSub">Click to switch clients</div>
+  </div>
+
+  <!-- Tool navigation (shown after P&L import) -->
+  <div class="sb-tools" id="sbTools">
+    <div class="sb-section-label">Tools</div>
+    <div id="sbToolNav"></div>
+    <div class="sb-section-label">Actions</div>
+    <button class="sb-nav-item" onclick="authGuard(function(){document.getElementById('xlFi').click();})">
+      <span class="sb-nav-icon">📊</span>Import P&amp;L
+    </button>
+    <button class="sb-nav-item" onclick="exportPDF()">
+      <span class="sb-nav-icon">📄</span>Export PDF
+    </button>
+    <button class="sb-nav-item" onclick="togglePrep()" id="sbPrepBtn" style="display:none">
+      <span class="sb-nav-icon">📋</span>Meeting Prep
+    </button>
+  </div>
+
+  <!-- Show before data loaded -->
+  <div id="sbPreData" style="padding:12px 16px">
+    <div class="sb-section-label" style="padding:8px 0 8px">Get started</div>
+    <button class="sb-nav-item" onclick="authGuard(function(){document.getElementById('xlFi').click();})">
+      <span class="sb-nav-icon">📊</span>Import P&amp;L
+    </button>
+    <button class="sb-nav-item" onclick="loadDemo()">
+      <span class="sb-nav-icon">🎯</span>Try demo data
+    </button>
+    <button class="sb-nav-item" onclick="document.getElementById('jFi').click()">
+      <span class="sb-nav-icon">📥</span>Load saved
+    </button>
+  </div>
+
+  <div class="sb-spacer"></div>
+
+  <!-- User area at bottom -->
+  <div class="sb-bottom">
+    <div class="sb-user" id="sbUserArea" style="display:none">
+      <div class="sb-avatar" id="sbAvatar">?</div>
+      <div>
+        <div class="sb-user-name" id="sbUserName">Signed in</div>
+        <div class="sb-user-role"><a href="#" onclick="authSignOut();return false;" style="color:var(--sub);text-decoration:none;font-size:10px">Sign out</a></div>
+      </div>
+    </div>
+    <button class="sb-nav-item" id="sbLoginBtn" onclick="showAuth('login')" style="display:flex">
+      <span class="sb-nav-icon">🔑</span>Sign in
+    </button>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div id="appMain">
 <main>
 
 <!-- GATE BANNER -->
@@ -535,6 +640,8 @@ footer strong{color:var(--acc)}
 </div>
 
 </main>
+</div><!-- /appMain -->
+</div><!-- /appShell -->
 <footer>Built for small business owners by <strong>CFO Vault</strong> — Financial clarity without the CFO price tag
   <span style="margin:0 10px;color:var(--bdrS)">|</span>
   <a href="#" onclick="openGuide();return false;" style="color:var(--acc);font-weight:500;text-decoration:none;font-size:12px">📖 User Guide</a>
@@ -1993,27 +2100,66 @@ function buildToolNav(){
     {k:'tax',      l:'Tax Estimate',    i:'🧾'},
     {k:'runway',   l:'Runway',          i:'📉'}
   ];
-  var nav=$('toolNav'); nav.innerHTML='';
+
+  // ── Sidebar nav (new) ──
+  var sbNav=$('sbToolNav');
+  if(sbNav){
+    sbNav.innerHTML='';
+    TOOLS.forEach(function(t){
+      var b=document.createElement('button');
+      b.className='sb-nav-item'+(t.k===AT?' on':'');
+      b.id='sbnav-'+t.k;
+      b.innerHTML='<span class="sb-nav-icon">'+t.i+'</span>'+t.l;
+      b.onclick=function(){
+        AT=t.k;
+        // Update sidebar active state
+        document.querySelectorAll('.sb-nav-item').forEach(function(x){x.classList.remove('on');});
+        b.classList.add('on');
+        // Also sync old horizontal nav if present
+        document.querySelectorAll('.tb').forEach(function(x){x.classList.remove('on');});
+        var oldBtn=document.querySelector('.tb[data-k="'+t.k+'"]');
+        if(oldBtn) oldBtn.classList.add('on');
+        // Switch panel
+        document.querySelectorAll('.tp').forEach(function(x){x.classList.remove('on');});
+        var p=$('tp-'+t.k);if(p)p.classList.add('on');
+        renderTool(t.k);
+        // Scroll main to top
+        var am=$('appMain');if(am)am.scrollTop=0;
+      };
+      sbNav.appendChild(b);
+    });
+  }
+
+  // Show sidebar tools section, hide pre-data section
+  var sbTools=$('sbTools');if(sbTools)sbTools.classList.add('on');
+  var sbPre=$('sbPreData');if(sbPre)sbPre.style.display='none';
+  var sbPrep=$('sbPrepBtn');if(sbPrep)sbPrep.style.display='flex';
+
+  // ── Old horizontal nav (hidden by CSS but keep JS intact) ──
+  var nav=$('toolNav'); if(nav) nav.innerHTML='';
   TOOLS.forEach(function(t){
     var b=document.createElement('button');
     b.className='tb'+(t.k===AT?' on':'');
+    b.setAttribute('data-k',t.k);
     b.innerHTML='<span class="ti">'+t.i+'</span><span>'+t.l+'</span>';
     b.onclick=function(){
       AT=t.k;
       document.querySelectorAll('.tb').forEach(function(x){x.classList.remove('on');});
       b.classList.add('on');
+      document.querySelectorAll('.sb-nav-item').forEach(function(x){x.classList.remove('on');});
+      var sbn=$('sbnav-'+t.k);if(sbn)sbn.classList.add('on');
       document.querySelectorAll('.tp').forEach(function(x){x.classList.remove('on');});
       var p=$('tp-'+t.k);if(p)p.classList.add('on');
       renderTool(t.k);
     };
-    nav.appendChild(b);
+    if(nav) nav.appendChild(b);
   });
-  var panels=$('toolPanels'); panels.innerHTML='';
+  var panels=$('toolPanels'); if(panels) panels.innerHTML='';
   TOOLS.forEach(function(t){
     var d=document.createElement('div');
     d.className='tp'+(t.k===AT?' on':'');
     d.id='tp-'+t.k;
-    panels.appendChild(d);
+    if(panels) panels.appendChild(d);
   });
 }
 
@@ -3162,15 +3308,17 @@ function wsDelClient(id){
 function wsGenId(){ return 'ws_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); }
 
 function wsSetActiveBadge(name){
+  // Header badge (legacy)
   var badge = $('activeClientBadge');
-  if(!badge) return;
-  if(name){
-    badge.style.display='flex';
-    badge.textContent=name;
-  } else {
-    badge.style.display='none';
-    badge.textContent='';
+  if(badge){
+    if(name){ badge.style.display='flex'; badge.textContent=name; }
+    else { badge.style.display='none'; badge.textContent=''; }
   }
+  // Sidebar client switcher
+  var sbName = $('sbClientName');
+  var sbSub  = $('sbClientSub');
+  if(sbName) sbName.textContent = name || 'No client selected';
+  if(sbSub)  sbSub.textContent  = name ? (S.bizName||name) + ' · Click to switch' : 'Click to open clients';
 }
 
 // Save current S + PT into the active workspace slot
@@ -3392,6 +3540,13 @@ function setUser(user){
     if(btnL) btnL.style.display='none';
     if(emailEl) emailEl.textContent = user.email;
     if(banner) banner.classList.remove('on');
+    // Sidebar user area
+    var sbUser=$('sbUserArea'), sbLogin=$('sbLoginBtn');
+    var sbAvatar=$('sbAvatar'), sbUserName=$('sbUserName');
+    if(sbUser) sbUser.style.display='flex';
+    if(sbLogin) sbLogin.style.display='none';
+    if(sbAvatar) sbAvatar.textContent = (user.email||'?')[0].toUpperCase();
+    if(sbUserName) sbUserName.textContent = user.email;
     var btnC = $('btnClients');
     if(btnC) btnC.style.display='flex';
     // Pull workspaces from cloud on login, then route appropriately
@@ -3445,6 +3600,10 @@ function setUser(user){
     if(area) area.style.display='none';
     if(btnL) btnL.style.display='block';
     if(banner) banner.classList.add('on');
+    // Sidebar user area — signed out
+    var sbUser2=$('sbUserArea'), sbLogin2=$('sbLoginBtn');
+    if(sbUser2) sbUser2.style.display='none';
+    if(sbLogin2) sbLogin2.style.display='flex';
     // Clear workspace state on sign out
     wsActiveId = null;
     localStorage.removeItem(WS_ACTIVE_KEY);
