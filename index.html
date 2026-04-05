@@ -524,7 +524,7 @@ main{max-width:none;padding:1.75rem 2rem}
   <button id="btnReset" onclick="resetApp()" style="display:none"></button>
   <!-- Actions dropdown — shown after data loads -->
   <div class="hdr-actions" id="hdrActions">
-    <button class="hdr-actions-btn" id="hdrActionsBtn" onclick="toggleActionsMenu()">Actions ▾</button>
+    <button class="hdr-actions-btn" id="hdrActionsBtn" onclick="toggleActionsMenu()">More ▾</button>
     <div class="hdr-dropdown" id="hdrDropdown">
       <button class="hdr-dd-item" onclick="exportPDF();closeActionsMenu()"><span class="dd-icon">📄</span>Export PDF</button>
       <button class="hdr-dd-item" onclick="savePeriod();closeActionsMenu()"><span class="dd-icon">💾</span>Save period</button>
@@ -1887,6 +1887,7 @@ function parseXL(file){
         if(found.length<3) showStatus('warn','Partial import ('+found.length+' of 4 fields). Some tools will use estimates for missing fields.');
         $('onboard').style.display='none';
         $('content').classList.add('on');
+  var ha=$('hdrActions');if(ha)ha.classList.add('on');
         ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
         go();
       }
@@ -2077,6 +2078,7 @@ function go(){
   IND.key = S.industry;
   periodData={revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex};
   $('content').classList.add('on');
+  var ha=$('hdrActions');if(ha)ha.classList.add('on');
   ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(id){var b=$(id);if(b)b.style.display='block';});
   var pLabel='';
   if(S.periodMonths&&S.periodMonths<12){
@@ -3421,6 +3423,7 @@ function wsLoadClient(id){
     $('onboard').style.display='none';
     $('parseStatus').style.display='none';
     $('content').classList.add('on');
+  var ha=$('hdrActions');if(ha)ha.classList.add('on');
     ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
     var aiOut=$('aiOut'),aiLoad=$('aiLoad'),aiBtn=$('aiBtn'),insBox=$('insightBox');
     if(aiOut){aiOut.innerHTML='';aiOut.classList.remove('show');}
