@@ -1563,6 +1563,264 @@ const INDS = {
   other:        {l:'Other Business',       i:'📊', gm:.40,net:.10,lb:.30,op:.18,tR:'Revenue',         tC:'Cost of Goods',     tL:'Labor',          tO:'Operating Expenses'}
 };
 
+
+// ── INDUSTRY PLAYBOOKS ─────────────────────────────────────────────
+// Deep per-industry context injected into AI prompts for both the
+// AI Advisor panel and the chat assistant.
+const PLAYBOOKS = {
+  restaurant: {
+    name: 'Restaurant / Food Service',
+    kpis: 'Prime cost (food + labor combined, target under 65%). Food cost % (target 28-32%). Labor % (target 30-35%). Revenue per cover. Table turns per service. Beverage attachment rate.',
+    traps: [
+      'Food cost creeping above 33% — usually portion control or supplier pricing drift',
+      'Prime cost above 68% makes profitability nearly impossible at typical restaurant revenue',
+      'Scheduling inefficiency — labor spikes on slow nights destroy weekly margins',
+      'Ignoring controllable vs non-controllable costs — rent and utilities are fixed, food and labor are not',
+      'No separate tracking of bar vs kitchen margins — bar typically runs 70%+ GM and subsidizes the kitchen'
+    ],
+    levers: [
+      'Tighten portion control and run weekly food cost reports — a 2% food cost reduction adds ~$12K/yr on $600K revenue',
+      'Engineer the menu — remove low-margin items, promote high-margin dishes with layout and server training',
+      'Build a scheduling template based on covers-per-labor-hour — target 1 server per 20 covers',
+      'Negotiate supplier contracts quarterly — volume commitments get 5-8% price breaks',
+      'Add a bar program or expand beverage offerings — 70%+ GM vs 30-35% on food'
+    ],
+    benchmarks: 'Healthy restaurant: food cost 28-32%, labor 30-35%, prime cost under 65%, net margin 3-9%. Warning zone: prime cost over 68%, food cost over 35%.'
+  },
+  retail: {
+    name: 'Retail Store',
+    kpis: 'Gross margin % (target 40-55%). Inventory turnover (target 4-8x/yr). Sell-through rate. Revenue per square foot. Average transaction value. Return rate.',
+    traps: [
+      'Dead inventory killing cash flow — slow-moving SKUs tie up capital and take up floor space',
+      'Discounting to drive traffic without tracking margin impact — 10% off on 40% GM product = 25% margin erosion',
+      'Seasonal cash flow mismanagement — buying inventory before revenue arrives',
+      'Staff scheduling not tied to traffic patterns — paying for coverage during dead hours',
+      'No loyalty or repeat purchase strategy — customer acquisition cost is 5x retention cost'
+    ],
+    levers: [
+      'Run an ABC inventory analysis — your top 20% of SKUs drive 80% of revenue; cut the bottom 30%',
+      'Set a minimum acceptable margin per category — never go below breakeven on a SKU',
+      'Build a reorder system based on sell-through rate, not gut feel',
+      'Track revenue per labor hour by shift — use it to optimize scheduling',
+      'Start a loyalty program — even a simple punch card increases visit frequency 20-30%'
+    ],
+    benchmarks: 'Healthy retail: gross margin 40-55%, inventory turns 4-8x, labor under 18% of revenue, net margin 2-8%. Warning: inventory turns under 3x, margin below 35%.'
+  },
+  agency: {
+    name: 'Agency / Consulting',
+    kpis: 'Utilization rate (target 70-80%). Effective billing rate vs blended cost rate. Project margin %. Client concentration (no client over 20% of revenue). Revenue per employee. Aged AR.',
+    traps: [
+      'Scope creep eating project margin — unbilled hours are pure cost with no recovery',
+      'Over-servicing anchor clients at below-market rates — loyalty discount becomes permanent subsidy',
+      'Client concentration risk — losing one client that is 30%+ of revenue is existential',
+      'Hiring ahead of revenue — bringing on staff before the contract is signed',
+      'Underpricing discovery and strategy work — clients pay for execution but discovery is where margin lives'
+    ],
+    levers: [
+      'Track utilization weekly — a 5% utilization drop on a 10-person team is 2 billable days/week lost',
+      'Build change order discipline — scope changes get a new SOW, no exceptions',
+      'Set a minimum project margin threshold (target 40%+) and walk away below it',
+      'Raise rates 8-12% annually with existing clients — most agencies undercharge long-term clients',
+      'Productize a service offering — fixed-price, fixed-scope packages improve margin predictability'
+    ],
+    benchmarks: 'Healthy agency: gross margin 50-65%, utilization 70-80%, net margin 15-25%, revenue per employee $150K-200K+. Warning: utilization below 60%, single client over 25% of revenue.'
+  },
+  saas: {
+    name: 'SaaS / Software',
+    kpis: 'Monthly Recurring Revenue (MRR). Net Revenue Retention (target 110%+). Churn rate (target under 5%/yr). CAC Payback Period (target under 18 months). LTV:CAC ratio (target 3:1+). Gross margin (target 70-85%).',
+    traps: [
+      'Confusing bookings with revenue — annual contracts booked are not revenue until delivered',
+      'Ignoring churn until it compounds — 10% annual churn means losing and replacing the entire customer base every 10 years',
+      'Premature scaling of sales before product-market fit is proven — CAC explodes',
+      'Infrastructure costs not tracked per customer — gross margin looks healthy until you model it per account',
+      'Discounting for ARR at the cost of unit economics — $1 of discounted ARR can have negative LTV'
+    ],
+    levers: [
+      'Reduce churn by 2% — it compounds; on $500K ARR that\'s an additional $10K+ retained annually',
+      'Build expansion revenue motion — upsells and seat additions from existing customers have near-zero CAC',
+      'Track CAC payback by channel — kill the channels above 24 months, double down on under 12',
+      'Price on value, not cost — SaaS pricing should reflect ROI delivered, not your infrastructure cost',
+      'Monthly success reviews with at-risk accounts — the 60 days before churn is your only intervention window'
+    ],
+    benchmarks: 'Healthy SaaS: gross margin 70-85%, NRR 110%+, churn under 5%/yr, CAC payback under 18mo. Warning: churn above 10%, gross margin below 60%, NRR below 95%.'
+  },
+  healthcare: {
+    name: 'Healthcare Practice',
+    kpis: 'Collections rate (target 90%+). Days in AR (target under 35). Cost per patient visit. Payer mix (% Medicare/Medicaid vs commercial). Revenue per physician. Patient volume vs capacity utilization.',
+    traps: [
+      'AR days creeping above 45 — every day of AR delay is a cash flow drag; at $1.5M revenue, 10 extra AR days = $41K tied up',
+      'Payer mix drift toward Medicaid — reimbursement rates are 40-60% of commercial rates for the same service',
+      'Physician productivity tracked by visits, not revenue — high-volume low-complexity visits can hide revenue per hour issues',
+      'Overhead not allocated per provider — you cannot manage what you do not measure at the individual level',
+      'Undercoding or missed charges — most practices leave 5-10% of collectable revenue unbilled'
+    ],
+    levers: [
+      'Run a charge capture audit — identify services routinely provided but not coded; common in labs, injections, care management',
+      'Renegotiate commercial payer contracts every 2 years — standard fee schedule increases of 3-5% are available if you ask',
+      'Reduce AR days by 5: implement eligibility verification at scheduling, not day-of-visit',
+      'Track revenue per provider per half-day — identify scheduling or coding gaps at the individual level',
+      'Shift payer mix 5% toward commercial — one commercial patient vs one Medicaid patient can be $60-80 difference per visit'
+    ],
+    benchmarks: 'Healthy practice: collections rate 95%+, AR days under 35, overhead ratio under 60%, net margin 10-20%. Warning: AR days over 50, collections rate under 85%, single payer over 60% of revenue.'
+  },
+  construction: {
+    name: 'Construction / Trades',
+    kpis: 'Job cost variance (estimate vs actual). Backlog in months (target 3-6 months). Equipment utilization %. Change order approval rate. Working capital ratio. Overhead absorption rate.',
+    traps: [
+      'Estimating errors compounding across jobs — a consistent 5% underestimate on $2M in contracts = $100K annual loss',
+      'Change orders not captured in writing before work begins — verbal approvals become disputes',
+      'Cash flow timing mismatch — paying subs before draws arrive from owner',
+      'Equipment sitting idle — a $150K piece of equipment needs to generate its cost in billable hours',
+      'Overhead not built into job costing — crew vehicles, insurance, and tools are real costs that belong in every bid'
+    ],
+    levers: [
+      'Post-job cost analysis on every completed job — compare estimate to actual on materials, labor, and subs',
+      'Build a change order policy with a written approval threshold — anything over $500 in writing before work starts',
+      'Front-load payment schedules — negotiate larger mobilization draws to cover early material costs',
+      'Track labor efficiency ratio per crew — hours budgeted vs hours spent reveals your best and worst performers',
+      'Raise overhead allocation by 2-3% in bids — most contractors underallocate indirect costs'
+    ],
+    benchmarks: 'Healthy contractor: gross margin 18-25%, overhead under 15%, net margin 4-8%, backlog 3-6 months. Warning: job cost variance above 10%, backlog under 2 months, working capital below 1.2x.'
+  },
+  law: {
+    name: 'Law Firm',
+    kpis: 'Realization rate (billed vs worked, target 85%+). Collection rate (collected vs billed, target 95%+). Billable hours per attorney (target 1,600-1,800/yr). Revenue per lawyer. AR aged over 90 days. Overhead ratio.',
+    traps: [
+      'Write-offs eroding realization — if attorneys bill 1,800 hours but only 1,400 are collected, overhead is being absorbed by phantom revenue',
+      'Aged AR above 90 days becoming uncollectable — after 90 days, collection probability drops below 50%',
+      'Associate leverage too low — a partner billing at $400/hr doing work that a $150/hr associate could do',
+      'No minimum billing increment discipline — six-minute increments that do not get recorded are pure lost revenue',
+      'Client concentration — one client representing 25%+ of revenue is a retention and leverage risk'
+    ],
+    levers: [
+      'Review and tighten write-off approval — require partner sign-off on any write-off over $500 and track by attorney',
+      'Send statements at 30/60/90 days automatically — most AR issues are inattention, not client inability to pay',
+      'Delegate down — audit partner time entries for tasks that could be handled by associates or paralegals',
+      'Raise rates for new clients annually — existing clients get 3-5% CPI increases, new clients start at market',
+      'Track realization by practice area and client — your worst realization clients are subsidized by your best ones'
+    ],
+    benchmarks: 'Healthy firm: realization 85%+, collection rate 95%+, overhead under 40%, net margin 25-35%. Warning: realization below 75%, AR over 90 days above 15% of total AR.'
+  },
+  msp: {
+    name: 'IT Managed Services',
+    kpis: 'Gross margin per account (target 30-38%). MSP contractor cost as % of revenue (target under 12%). Staff allocation efficiency. Contract renewal rate (target 95%+). Revenue per managed endpoint. Ticket resolution time.',
+    traps: [
+      'Contractor costs eating account margin — a managed account with 40% gross margin and 15% contractor cost leaves only 25% before overhead',
+      'Underpricing legacy accounts — clients onboarded 3+ years ago are often 20-30% below current market rates',
+      'Reactive break-fix work cannibalizing managed service time — hourly work is lower margin and disrupts capacity planning',
+      'No per-account P&L — you cannot see which accounts are profitable and which are money-losers without it',
+      'Staff burnout from over-concentration — two techs managing 80% of accounts is a single point of failure'
+    ],
+    levers: [
+      'Run a per-account gross margin analysis — identify accounts below 25% GM and either reprice or exit',
+      'Implement annual rate escalators in contracts — 3-5% annually tied to CPI is standard and expected',
+      'Cap reactive hours in managed contracts — anything above the cap is billed at a premium rate',
+      'Review MSP contractor mix quarterly — renegotiate or replace vendors above 10% of account revenue',
+      'Develop a Tier 1/Tier 2/Tier 3 support model — right-size the cost of response to the complexity of the issue'
+    ],
+    benchmarks: 'Healthy MSP: gross margin 30-38%, contractor cost under 12% of revenue, net margin 10-18%, contract renewal rate 95%+. Warning: gross margin below 25%, contractor cost above 15%, churn above 10%/yr.'
+  },
+  manufacturing: {
+    name: 'Manufacturing',
+    kpis: 'Overall Equipment Effectiveness — OEE % (target 75-85%). COGS as % of sales (target 60-70%). Scrap and rework rate. Inventory turns (target 6-12x). On-time delivery %. Labor efficiency ratio.',
+    traps: [
+      'Unplanned downtime destroying OEE — a machine down 10% of the time is costing you 10% of potential revenue at full capacity',
+      'Scrap not tracked at point of origin — scrap that reaches QC is 10x more expensive than scrap caught at the machine',
+      'Inventory buildup hiding cash flow problems — WIP and finished goods are cash tied up in product',
+      'Overtime as a default capacity solution — OT is 1.5x labor cost for the same output',
+      'Pricing based on standard cost without reviewing for material inflation — commodity price changes can eliminate margin silently'
+    ],
+    levers: [
+      'Implement a daily OEE scorecard by machine — visibility drives accountability; target 5% OEE improvement in 90 days',
+      'Run a scrap root cause analysis — identify the top 3 sources of scrap and build controls around each',
+      'Reduce WIP inventory by 20% through pull scheduling — build to order not to forecast where possible',
+      'Build a material cost review into pricing quarterly — a 5% steel price increase on a steel-heavy product is a 2-3% margin hit',
+      'Track labor efficiency by cell or line — your best line has lessons your worst line needs'
+    ],
+    benchmarks: 'Healthy manufacturer: gross margin 25-40%, OEE 75%+, inventory turns 6-12x, net margin 5-12%. Warning: OEE below 60%, scrap rate above 5%, inventory turns below 4x.'
+  },
+  fitness: {
+    name: 'Fitness / Wellness',
+    kpis: 'Member retention rate (target 70%+/yr). Revenue per member. Customer acquisition cost. Monthly attrition rate (target under 2.5%). Capacity utilization %. Revenue per square foot.',
+    traps: [
+      'Ignoring monthly attrition — 3% monthly attrition is 36% annual churn; you are replacing a third of your members every year',
+      'Discounting memberships to hit sales goals — a 20% discount requires 25% more members to break even',
+      'Instructor dependency risk — a top instructor leaving takes their clients with them',
+      'Underutilized off-peak hours generating no incremental revenue',
+      'No upgrade path from base membership — revenue per member stays flat with no upsell'
+    ],
+    levers: [
+      'Call every member who has not visited in 21 days — a check-in call reduces attrition by 30-40% for at-risk members',
+      'Build a 3-tier membership with a premium tier — even 20% of members upgrading adds meaningful revenue per member',
+      'Create off-peak programming — a 6am boot camp or noon yoga class fills dead hours at near-zero incremental cost',
+      'Track CAC by acquisition channel and cut channels above $200 CAC for a $50/mo membership',
+      'Offer annual prepay at a small discount — locks in revenue and dramatically reduces monthly attrition'
+    ],
+    benchmarks: 'Healthy fitness: retention 70%+/yr, attrition under 2.5%/mo, gross margin 50-65%, net margin 10-20%. Warning: monthly attrition above 4%, capacity utilization below 40%.'
+  },
+  logistics: {
+    name: 'Logistics / Transportation',
+    kpis: 'Revenue per mile. Driver utilization %. Fuel cost as % of revenue (target under 25%). On-time delivery %. Empty mile % (target under 15%). Asset utilization %.',
+    traps: [
+      'Empty miles destroying per-mile economics — every empty mile is cost with zero revenue',
+      'Fuel surcharge not fully passed through to customers — fuel price spikes erode margin instantly without surcharge recovery',
+      'Driver turnover averaging 90%+ in trucking — replacement cost is $5,000-10,000 per driver including training',
+      'Asset depreciation not modeled into per-mile cost — equipment replacement is a real cost even if it is not this month\'s cash expense',
+      'Customer concentration — one shipper over 30% of loads makes you a captive carrier at their pricing'
+    ],
+    levers: [
+      'Use a load board or brokerage to fill backhauls — reducing empty miles from 25% to 15% is a 10% revenue lift on existing assets',
+      'Implement a fuel surcharge table tied to the DOE fuel index — update it weekly and enforce it',
+      'Build a driver retention program — a $0.02/mile pay increase for tenure milestones costs less than one replacement',
+      'Optimize routes with software — 5-10% reduction in total miles driven on local delivery routes is achievable in 90 days',
+      'Track total cost per mile including depreciation — know your floor before accepting any load'
+    ],
+    benchmarks: 'Healthy logistics: gross margin 20-30%, empty miles under 15%, fuel under 25% of revenue, net margin 3-8%. Warning: empty miles above 25%, driver turnover above 100%/yr.'
+  },
+  realestate: {
+    name: 'Real Estate Services',
+    kpis: 'GCI per agent (Gross Commission Income). Transactions per month. Average commission per transaction. Listing-to-close ratio. Cost per transaction. Agent productivity distribution.',
+    traps: [
+      'Agent count growth masking productivity decline — 20 agents doing 2 transactions each is worse than 10 doing 5',
+      'Split structure not reviewed against market — competitive splits attract agents but kill brokerage margin',
+      'Transaction coordinator costs scaling with volume but not being passed through',
+      'Marketing spend not tracked per listing or per lead source — most brokers overspend on low-ROI channels',
+      'Agent dependency — if 3 agents produce 60% of GCI, the brokerage is one resignation away from a revenue crisis'
+    ],
+    levers: [
+      'Set a minimum GCI threshold per agent — agents below $60K GCI annually are likely net losses after desk costs',
+      'Track lead source ROI — cost per closed transaction by channel; cut channels above $3,000 per close',
+      'Introduce a transaction coordinator fee to buyers/sellers — $300-500 per side is standard and covers your TC cost',
+      'Create an agent productivity ranking and coach the bottom quartile monthly or exit them',
+      'Build a referral and repeat business program — past clients referring one transaction per year is near-zero CAC revenue'
+    ],
+    benchmarks: 'Healthy brokerage: company dollar (retained GCI) 25-35%, net margin 15-25%, GCI per agent $80K+. Warning: company dollar below 20%, top 3 agents over 50% of GCI.'
+  },
+  other: {
+    name: 'Business',
+    kpis: 'Gross margin %. Net margin %. Operating expense ratio. Cash conversion cycle. Working capital. Revenue growth rate.',
+    traps: [
+      'Mistaking revenue growth for profitability — revenue can grow while margin shrinks if costs grow faster',
+      'Ignoring cash flow timing — profitable businesses fail because of cash flow gaps',
+      'Fixed cost creep — overhead that made sense at lower revenue becomes unsustainable as costs layer in',
+      'No per-product or per-service margin visibility — blended margins hide loss-leaders',
+      'Accounts receivable aging — every dollar in AR over 60 days has a 50% collection risk'
+    ],
+    levers: [
+      'Build a simple monthly P&L review habit — most margin problems are visible months before they become crises',
+      'Track cash separately from profit — know your cash position 90 days forward at all times',
+      'Set a minimum gross margin threshold and enforce it on every sale',
+      'Review your top 10 cost lines quarterly — the first question is always "can this be reduced by 10%?"',
+      'Build a 3-month cash reserve — it eliminates most financing emergencies and negotiating from weakness'
+    ],
+    benchmarks: 'Review gross margin, net margin, and cash runway against your specific industry averages. The goal is consistent improvement quarter over quarter.'
+  }
+};
+
+function getPlaybook(){
+  return PLAYBOOKS[S.industry] || PLAYBOOKS.other;
+}
+
 // ── STATE ─────────────────────────────────────────────────────────
 let IND = INDS.other;
 let AT = 'overview'; // active tool
@@ -3061,24 +3319,28 @@ function runAI(){
   var btn=$('aiBtn'),load=$('aiLoad'),out=$('aiOut');
   btn.disabled=true; load.classList.add('show'); out.classList.remove('show'); out.innerHTML='';
   var a=getAdj();
-  var indContext={
-    restaurant:'Food cost % (target 28-32%), labor % (target 30-35%), prime cost target under 65%, revenue per cover, table turns per service.',
-    retail:'Gross margin % (target 40-55%), inventory turnover (target 4-8x/yr), sell-through rate, revenue per sq ft, shrinkage %.',
-    agency:'Utilization rate (target 70-80%), effective billing rate, project margin %, client concentration risk, revenue per employee.',
-    saas:'MRR growth, churn rate (target under 5%/yr), CAC payback period, LTV:CAC ratio (target 3:1+), net revenue retention, gross margin (target 70-85%).',
-    healthcare:'Collections rate (target 90%+), cost per visit, days in AR (target under 35), payer mix, overhead ratio, revenue per physician.',
-    construction:'Job cost variance, backlog months, equipment utilization, change order rate, working capital ratio, bonding capacity.',
-    realestate:'GCI per agent, transactions per month, average commission, listing-to-close ratio, cost per transaction, agent productivity.',
-    manufacturing:'OEE %, COGS as % of sales, scrap rate, inventory turns, on-time delivery %, labor efficiency ratio.',
-    fitness:'Member retention rate (target 70%+), revenue per member, cost per acquisition, attrition rate, capacity utilization %.',
-    logistics:'Revenue per mile, driver utilization %, fuel cost %, on-time delivery %, empty mile %, asset utilization.',
-    law:'Realization rate (target 85%+), collection rate, billable hours per attorney, revenue per lawyer, overhead ratio.',
-    msp:'Gross margin per account (target 30-38%), MSP contractor cost as % of revenue (target under 12%), staff allocation efficiency, contract renewal rate, cost per managed endpoint.',
-    other:'Gross margin %, net margin %, operating expense ratio, working capital cycle, cash conversion cycle.'
-  };
-  var ctx=indContext[S.industry]||indContext.other;
-  var prompt='You are a CFO advisor reviewing a '+IND.l+' business called "'+(S.bizName||'the business')+'". Benchmark context: '+ctx+'\n\nP&L (annual):\n- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString()+'\n- '+IND.tC+': $'+Math.round(S.cogs).toLocaleString()+' ('+pc(S.revenue?S.cogs/S.revenue:0)+' of revenue)\n- '+IND.tL+': $'+Math.round(S.labor).toLocaleString()+' ('+pc(S.revenue?S.labor/S.revenue:0)+' of revenue)\n- Gross margin: $'+Math.round(a.bGM).toLocaleString()+' ('+pc(a.bGMp)+') — benchmark '+pc(IND.gm)+'\n- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+'\n- Net margin: $'+Math.round(a.bNet).toLocaleString()+' ('+pc(S.revenue?a.bNet/S.revenue:0)+') — benchmark '+pc(IND.net)+'\n'+(S.staff.length?'\nStaff:\n'+S.staff.map(function(s){return'- '+s.name+': $'+Math.round(s.total||0).toLocaleString();}).join('\n'):'')+'\n\nAs a CFO: (1) 2-sentence health assessment using industry benchmarks above, (2) top 3 risks with specific numbers, (3) 3 CFO-level actions this month with exact targets. Label each section **bold header**. Direct, no filler words.'
-  fetch('https://cfovault-proxy.keyunterichard.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:900,system:'You are a CFO advisor for small business owners. Direct, plain language. Bold key terms with **asterisks**. Label sections with **bold headers**.',messages:[{role:'user',content:prompt}]})})
+  var pb = getPlaybook();
+  var prompt =
+    'You are a senior CFO advisor specializing in '+pb.name+' businesses. You are reviewing "' + (S.bizName||'the business') + '.\n\n' +
+    'INDUSTRY PLAYBOOK:\n' +
+    'Key metrics: '+pb.kpis+'\n\n' +
+    'Common cost traps:\n' + pb.traps.map(function(t){return'- '+t;}).join('\n') + '\n\n' +
+    'Proven improvement levers:\n' + pb.levers.map(function(l){return'- '+l;}).join('\n') + '\n\n' +
+    'Benchmarks: '+pb.benchmarks+'\n\n' +
+    'FINANCIALS (annual):\n' +
+    '- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString()+'\n' +
+    '- '+IND.tC+': $'+Math.round(S.cogs).toLocaleString()+' ('+pc(S.revenue?S.cogs/S.revenue:0)+' of revenue)\n' +
+    '- '+IND.tL+': $'+Math.round(S.labor).toLocaleString()+' ('+pc(S.revenue?S.labor/S.revenue:0)+' of revenue)\n' +
+    '- Gross margin: $'+Math.round(a.bGM).toLocaleString()+' ('+pc(a.bGMp)+') — benchmark '+pc(IND.gm)+'\n' +
+    '- '+IND.tO+': $'+Math.round(S.opex).toLocaleString()+'\n' +
+    '- Net margin: $'+Math.round(a.bNet).toLocaleString()+' ('+pc(S.revenue?a.bNet/S.revenue:0)+') — benchmark '+pc(IND.net)+'\n' +
+    (S.staff.length ? '\nStaff:\n'+S.staff.map(function(s){return'- '+s.name+': $'+Math.round(s.total||0).toLocaleString();}).join('\n') : '') +
+    '\n\nUsing the playbook above, give a CFO-level analysis with three labeled sections:\n' +
+    '**Financial Health** — 2-sentence assessment comparing their numbers to '+pb.name+' benchmarks.\n' +
+    '**Top Risks** — 3 risks specific to their numbers using the common traps above. Use exact dollar amounts.\n' +
+    '**Actions This Month** — 3 actions from the proven levers above with exact targets and expected dollar impact.\n\n' +
+    'Use industry terminology. No generic advice. Every point must reference their actual numbers.';
+    fetch('https://cfovault-proxy.keyunterichard.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:900,system:'You are a CFO advisor for small business owners. Direct, plain language. Bold key terms with **asterisks**. Label sections with **bold headers**.',messages:[{role:'user',content:prompt}]})})
   .then(function(r){return r.json();})
   .then(function(d){renderAI(d.content&&d.content[0]&&d.content[0].text||'No response.',out);})
   .catch(function(){renderAI(fallbackAI(a),out);})
@@ -4101,9 +4363,16 @@ function chatBuildContext(){
   var lbP = S.revenue ? (S.labor/S.revenue*100).toFixed(1) : '0';
   var opP = S.revenue ? (S.opex/S.revenue*100).toFixed(1) : '0';
   var biz = S.bizName || IND.l;
+  var pb = getPlaybook();
   var lines = [
     'You are a CFO advisor for '+biz+', a '+IND.l+' business.',
-    'Answer questions directly using the financial data below. Be specific with numbers. Keep answers concise — 2-4 sentences unless the question requires more. Never say you cannot access data; it is all provided here.',
+    'Answer questions directly using the financial data and industry playbook below. Be specific with numbers. Keep answers concise — 2-4 sentences unless the question requires more.',
+    '',
+    'INDUSTRY PLAYBOOK ('+pb.name+'):',
+    'Key metrics: '+pb.kpis,
+    'Common traps: '+pb.traps.slice(0,3).join(' | '),
+    'Top levers: '+pb.levers.slice(0,3).join(' | '),
+    'Benchmarks: '+pb.benchmarks,
     '',
     'FINANCIAL DATA (annual):',
     '- '+IND.tR+': $'+Math.round(S.revenue).toLocaleString(),
