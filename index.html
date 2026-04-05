@@ -3437,7 +3437,7 @@ function exportPDF(){
 
 function resetApp(){
   periodData={revenue:0,cogs:0,labor:0,opex:0};
-  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[]};
+  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[],ownerMode:false};
   IND=INDS.other; IND.key='other'; AT='overview'; PT=[];
   Object.values(Charts).forEach(function(ch){try{ch.destroy();}catch(e){}});Charts={};
   $('content').classList.remove('on');
@@ -3785,7 +3785,7 @@ function wsLoadClient(id){
   if(wsActiveId && S.revenue > 0) wsSaveActive();
   // Reset app state cleanly (no visual reset — just data)
   periodData={revenue:0,cogs:0,labor:0,opex:0};
-  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[]};
+  S={bizName:'',industry:'other',period:'',notes:'',revenue:0,cogs:0,labor:0,opex:0,rawRevenue:0,rawCogs:0,rawLabor:0,rawOpex:0,periodMonths:12,staff:[],msp:[],targetMargin:35,costPerUnit:0,competitorPrice:0,fixedCosts:0,variableCostPct:0,pricePerUnit:0,cashOnHand:0,currentCash:0,avgMonthlyBurn:0,filingStatus:'single',stateRate:0,stateCode:'TX',bizType:'sole_prop',otherIncome:0,ytdTaxPaid:0,cfMonths:[],ownerMode:false};
   IND=INDS.other; IND.key='other'; AT='overview'; PT=[];
   Object.values(Charts).forEach(function(ch){try{ch.destroy();}catch(e){}});Charts={};
 
@@ -3798,6 +3798,7 @@ function wsLoadClient(id){
     Object.assign(S, saved.s);
     if(saved.pt) PT = saved.pt;
     IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+    ownerModeRestore();
     $('onboard').style.display='none';
     $('parseStatus').style.display='none';
     $('content').classList.add('on');
@@ -4015,6 +4016,7 @@ function setUser(user, isInit){
         Object.assign(S, saved.s);
         if(saved.pt) PT = saved.pt;
         IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+        ownerModeRestore();
         wsSetActiveBadge(w.name);
         go();
         chatCheckShow();
@@ -4030,6 +4032,7 @@ function setUser(user, isInit){
               Object.assign(S, saved.s);
               if(saved.pt) PT = saved.pt;
               IND = INDS[S.industry]||INDS.other; IND.key = S.industry;
+              ownerModeRestore();
               wsSetActiveBadge(entry.name);
               go();
               chatCheckShow();
@@ -4572,9 +4575,9 @@ var ownerMode = false;
 
 function toggleOwnerMode(){
   ownerMode = !ownerMode;
-  localStorage.setItem('ownerMode', ownerMode ? '1' : '0');
+  S.ownerMode = ownerMode;
+  wsSaveActive();
   applyOwnerMode();
-  // Re-render overview if we're on it
   if(typeof AT !== 'undefined' && AT === 'overview') renderTool('overview');
 }
 
@@ -4606,9 +4609,9 @@ function applyOwnerMode(){
   }
 }
 
-// Restore owner mode on load
+// Restore owner mode from workspace S state (synced via Supabase)
 function ownerModeRestore(){
-  ownerMode = localStorage.getItem('ownerMode') === '1';
+  ownerMode = S.ownerMode === true;
   applyOwnerMode();
 }
 
