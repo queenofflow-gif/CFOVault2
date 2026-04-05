@@ -352,6 +352,21 @@ footer strong{color:var(--acc)}
 #gateBanner.on{display:flex}
 #gateBanner button{background:var(--acc);border:none;color:#fff;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
 
+
+/* ── ACTIONS DROPDOWN ── */
+.hdr-actions{position:relative;display:none}
+.hdr-actions.on{display:block}
+.hdr-actions-btn{background:var(--surf);border:1px solid var(--bdrS);color:var(--mut);font-size:12px;padding:5px 13px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.hdr-actions-btn:hover,.hdr-actions-btn.open{border-color:var(--acc);color:var(--acc);background:var(--accL)}
+.hdr-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surf);border:1px solid var(--bdrS);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:180px;z-index:200;display:none;flex-direction:column;overflow:hidden;padding:4px}
+.hdr-dropdown.open{display:flex}
+.hdr-dd-item{display:flex;align-items:center;gap:9px;padding:9px 13px;font-size:13px;color:var(--txt);cursor:pointer;border-radius:7px;transition:all .12s;background:none;border:none;font-family:var(--sans);width:100%;text-align:left}
+.hdr-dd-item:hover{background:var(--accL);color:var(--acc)}
+.hdr-dd-item .dd-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.hdr-dd-sep{height:1px;background:var(--bdr);margin:3px 8px}
+.hdr-dd-item.danger{color:var(--red)}
+.hdr-dd-item.danger:hover{background:var(--redL);color:var(--red)}
+
 /* ── SIDEBAR LAYOUT ── */
 body{display:flex;flex-direction:column}
 /* ── SIDEBAR LAYOUT ── */
@@ -498,16 +513,29 @@ main{max-width:none;padding:1.75rem 2rem}
   <span class="lmark">CFO Vault</span>
   <span class="ltag">CFO In Your Pocket</span>
   <button class="hbtn" id="btnPortfolio" onclick="showPortfolio()" style="display:none;align-items:center;gap:5px">&#x25A6; Portfolio</button>
+  <!-- Hidden legacy IDs so JS never breaks -->
   <button id="btnClients" onclick="openWorkspace()" style="display:none"></button>
-  <div id="activeClientBadge"></div>
-  <div id="authUserArea"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
+  <div id="activeClientBadge" style="display:none"></div>
+  <button id="btnSave" onclick="savePeriod()" style="display:none"></button>
+  <button id="btnExport" onclick="exportData()" style="display:none"></button>
+  <button id="btnXLImport" onclick="authGuard(function(){document.getElementById('xlFi').click();})" style="display:none"></button>
+  <button id="btnImport" onclick="document.getElementById('jFi').click()" style="display:none"></button>
+  <button id="btnPDF" onclick="exportPDF()" style="display:none"></button>
+  <button id="btnReset" onclick="resetApp()" style="display:none"></button>
+  <!-- Actions dropdown — shown after data loads -->
+  <div class="hdr-actions" id="hdrActions">
+    <button class="hdr-actions-btn" id="hdrActionsBtn" onclick="toggleActionsMenu()">Actions ▾</button>
+    <div class="hdr-dropdown" id="hdrDropdown">
+      <button class="hdr-dd-item" onclick="exportPDF();closeActionsMenu()"><span class="dd-icon">📄</span>Export PDF</button>
+      <button class="hdr-dd-item" onclick="savePeriod();closeActionsMenu()"><span class="dd-icon">💾</span>Save period</button>
+      <button class="hdr-dd-item" onclick="exportData();closeActionsMenu()"><span class="dd-icon">📤</span>Export data</button>
+      <button class="hdr-dd-item" onclick="document.getElementById('jFi').click();closeActionsMenu()"><span class="dd-icon">📥</span>Load saved</button>
+      <div class="hdr-dd-sep"></div>
+      <button class="hdr-dd-item danger" onclick="resetApp();closeActionsMenu()"><span class="dd-icon">↩</span>Start over</button>
+    </div>
+  </div>
+  <div id="authUserArea" style="display:none"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
   <button id="btnLogin" onclick="showAuth('login')" style="display:none">Sign in</button>
-  <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
-  <button class="hbtn" id="btnExport" onclick="exportData()">&#x1F4E4; Export data</button>
-  <button class="hbtn" id="btnXLImport" onclick="authGuard(function(){document.getElementById('xlFi').click();})" style="display:none">&#x1F4CA; Import P&amp;L</button>
-  <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()">&#x1F4E5; Load saved</button>
-  <button class="hbtn pri" id="btnPDF" onclick="exportPDF()">&#x2B07; Export PDF</button>
-  <button class="hbtn" id="btnReset" onclick="resetApp()">&#x21A9; Start over</button>
 </header>
 <input type="file" id="xlFi" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jFi" accept=".json" style="display:none">
@@ -1890,6 +1918,7 @@ function loadDemo(){
   PT = [];
   $('onboard').style.display='none';
   $('content').classList.add('on');
+  var ha=$('hdrActions');if(ha)ha.classList.add('on');
   ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
   showStatus('ok','Sample data loaded: '+S.bizName+' — replace with your real P&L to get accurate analysis.');
   go();
@@ -3044,6 +3073,7 @@ function resetApp(){
   if(insBox){insBox.innerHTML='';insBox.className='ibox good';}
   // Clear active client badge on reset
   wsSetActiveBadge(null);
+  var ha=$('hdrActions');if(ha)ha.classList.remove('on');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -4090,6 +4120,25 @@ go = function(){
 };
 
 // Also show when user logs in and has active workspace
+
+function toggleActionsMenu(){
+  var dd=$('hdrDropdown'), btn=$('hdrActionsBtn');
+  var isOpen = dd.classList.toggle('open');
+  if(btn) btn.classList.toggle('open', isOpen);
+}
+
+function closeActionsMenu(){
+  var dd=$('hdrDropdown'), btn=$('hdrActionsBtn');
+  if(dd) dd.classList.remove('open');
+  if(btn) btn.classList.remove('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e){
+  var wrap=$('hdrActions');
+  if(wrap && !wrap.contains(e.target)) closeActionsMenu();
+});
+
 function toggleSidebar(){
   var sb=$('appSidebar');
   if(!sb) return;
