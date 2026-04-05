@@ -3568,19 +3568,29 @@ function initSupabase(){
     supaClient = supabase.createClient(SUPA_URL, SUPA_KEY);
     supaClient.auth.getSession().then(function(res){
       var session = res.data && res.data.session;
-      if(session && session.user){ setUser(session.user); }
-      else{ setUser(null); }
+      if(session && session.user){ setUser(session.user, true); }
+      else{ setUser(null, true); }
     });
     supaClient.auth.onAuthStateChange(function(event, session){
-      // TOKEN_REFRESHED fires when tab regains focus — don't re-route
-      if(event === 'TOKEN_REFRESHED') return;
-      if(session && session.user){ setUser(session.user); }
-      else{ setUser(null); }
+      // Only act on actual sign-in and sign-out events.
+      // SIGNED_IN also fires on tab focus / token refresh — ignore those
+      // by checking if we already have a routed session.
+      if(event === 'SIGNED_OUT'){
+        setUser(null, false);
+      } else if(event === 'SIGNED_IN' && !currentUser){
+        // Only route if we don't already have a user (actual new login)
+        setUser(session && session.user ? session.user : null, false);
+      }
+      // TOKEN_REFRESHED, INITIAL_SESSION, USER_UPDATED — all ignored
     });
   } catch(e){ console.warn('Supabase init failed:', e); }
 }
 
-function setUser(user){
+var _userRouted = false; // tracks if initial workspace routing has run
+
+function setUser(user, isInit){
+  // Prevent re-routing when Supabase re-fires on tab focus
+  if(user && currentUser && currentUser.id === user.id && _userRouted) return;
   currentUser = user;
   var area = $('authUserArea');
   var btnL = $('btnLogin');
@@ -3603,6 +3613,7 @@ function setUser(user){
     if(sbUN) sbUN.textContent=user.email;
     // Pull workspaces from cloud on login, then route appropriately
     wsCloudPull(function(ok){
+      _userRouted = true;
       renderWorkspaceList();
       sbUpdateClientCount();
       var idx = wsGetIndex();
@@ -3651,6 +3662,7 @@ function setUser(user){
     });
   } else {
     // ── SIGNED OUT — hide everything, go back to home ──
+    _userRouted = false;
     if(area) area.style.display='none';
     if(btnL) btnL.style.display='block';
     if(banner) banner.classList.add('on');
