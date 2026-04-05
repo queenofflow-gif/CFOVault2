@@ -367,6 +367,35 @@ footer strong{color:var(--acc)}
 .hdr-dd-item.danger{color:var(--red)}
 .hdr-dd-item.danger:hover{background:var(--redL);color:var(--red)}
 
+
+/* ── OWNER MODE ── */
+:root { --owner:#1a3a70; --ownerL:#edf2fc; --ownerM:#2a4d8f; }
+.sb-mode-wrap{margin:10px 10px 0;border-radius:10px;padding:11px 12px;border:1px solid var(--bdr);background:var(--surf2);transition:all .2s}
+.sb-mode-wrap.owner-on{background:var(--ownerL);border-color:#a8c0e0}
+.sb-mode-label{font-size:9px;color:var(--sub);letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;font-weight:600}
+.sb-mode-wrap.owner-on .sb-mode-label{color:var(--owner)}
+.sb-mode-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sb-mode-info{flex:1;min-width:0}
+.sb-mode-name{font-size:12px;font-weight:600;color:var(--mut);display:flex;align-items:center;gap:5px;margin-bottom:2px}
+.sb-mode-wrap.owner-on .sb-mode-name{color:var(--owner)}
+.sb-mode-sub{font-size:10px;color:var(--sub);line-height:1.35}
+.sb-mode-wrap.owner-on .sb-mode-sub{color:#6a86b0}
+.sb-toggle{width:34px;height:19px;border-radius:10px;background:var(--bdr);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.sb-toggle::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.sb-toggle.on{background:var(--owner)}
+.sb-toggle.on::after{transform:translateX(15px)}
+#appSidebar.collapsed .sb-mode-wrap{padding:8px 6px;margin:8px 6px 0}
+#appSidebar.collapsed .sb-mode-label,#appSidebar.collapsed .sb-mode-info{display:none}
+#appSidebar.collapsed .sb-mode-row{justify-content:center}
+/* Owner banner */
+#ownerBanner{display:none;background:var(--ownerL);border-bottom:1px solid #a8c0e0;padding:7px 20px;font-size:12px;color:var(--owner);align-items:center;gap:8px;flex-shrink:0}
+#ownerBanner.on{display:flex}
+/* Owner mode card labels */
+.owner-kpi-lbl{font-size:10px;color:#6a86b0;font-style:italic;line-height:1.35;margin-top:3px}
+/* Owner topbar pill */
+.owner-pill{background:var(--ownerL);color:var(--owner);border:1px solid #a8c0e0;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;display:none;align-items:center;gap:5px}
+.owner-pill.on{display:flex}
+
 /* ── SIDEBAR LAYOUT ── */
 body{display:flex;flex-direction:column}
 /* ── SIDEBAR LAYOUT ── */
@@ -523,6 +552,7 @@ main{max-width:none;padding:1.75rem 2rem}
   <button id="btnPDF" onclick="exportPDF()" style="display:none"></button>
   <button id="btnReset" onclick="resetApp()" style="display:none"></button>
   <!-- Actions dropdown — shown after data loads -->
+  <div class="owner-pill" id="ownerPill">🏢 Owner Mode</div>
   <div class="hdr-actions" id="hdrActions">
     <button class="hdr-actions-btn" id="hdrActionsBtn" onclick="toggleActionsMenu()">More ▾</button>
     <div class="hdr-dropdown" id="hdrDropdown">
@@ -556,6 +586,18 @@ main{max-width:none;padding:1.75rem 2rem}
     <div class="sb-client-sub" id="sbClientSub">Click to switch</div>
   </div>
 
+  <!-- Owner Mode Toggle -->
+  <div class="sb-mode-wrap" id="sbModeWrap">
+    <div class="sb-mode-label">View Mode</div>
+    <div class="sb-mode-row">
+      <div class="sb-mode-info">
+        <div class="sb-mode-name"><span id="sbModeIcon">📊</span><span id="sbModeName">Advisor Mode</span></div>
+        <div class="sb-mode-sub" id="sbModeSub">Technical view for advisors</div>
+      </div>
+      <button class="sb-toggle" id="sbModeToggle" onclick="toggleOwnerMode()" title="Toggle Owner Mode"></button>
+    </div>
+  </div>
+
   <div class="sb-tools" id="sbTools">
     <div class="sb-section-label">Tools</div>
     <div id="sbToolNav"></div>
@@ -581,6 +623,8 @@ main{max-width:none;padding:1.75rem 2rem}
   </div>
 </div>
 <div id="appMain">
+<!-- Owner Mode Banner -->
+<div id="ownerBanner">🏢 <strong>Owner Mode is on</strong> — numbers shown in plain language. Toggle off in the sidebar to switch back.</div>
 <main>
 
 <!-- GATE BANNER -->
@@ -2089,6 +2133,7 @@ function go(){
   // snapSec/benchInd now live inside tp-overview — guard them
   var _ss=$('snapSec');if(_ss)_ss.textContent='Snapshot — '+(S.bizName||IND.l)+pLabel;
   var _bi=$('benchInd');if(_bi)_bi.textContent=IND.l;
+  ownerModeRestore();
   buildToolNav();
   render();
 }
@@ -2189,12 +2234,44 @@ function renderTool(k){
 function renderSnap(){
   var _sc=$('snapCards');if(!_sc)return;
   var a=getAdj();
+  var gmPct = Math.round(a.bGMp*100);
+  var netAmt = a.bNet<0?'-'+fmt(Math.abs(a.bNet)):fmt(a.bNet);
+  var burn = S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
+  var runwayMo = (S.currentCash||S.cashOnHand||0)>0 && burn>0 ? ((S.currentCash||S.cashOnHand||0)/burn).toFixed(1) : null;
+
   _sc.innerHTML=
-    mc(a.bGMp>=IND.gm?'cg':a.bGMp<IND.gm*.7?'cr':'cw','Gross margin',pc(a.bGMp),fmt(a.bGM)+'/yr · target '+pc(IND.gm),a.bGMp>=IND.gm?'vg':a.bGMp<IND.gm*.7?'vr':'va')+
-    mc(a.bNet>=0?'cg':'cr','Net margin',pc(S.revenue?a.bNet/S.revenue:0),(a.bNet<0?'-':'')+fmt(a.bNet)+'/yr',a.bNet>=0?'vg':'vr')+
-    mc('cb',IND.tR,fmt(S.revenue),fmt(S.revenue/12)+'/mo','')+
-    mc('cw','COGS + Labor',fmt(a.bT),S.revenue?Math.round(a.bT/S.revenue*100)+'% of revenue':'','va')+
-    mc('','Adjusted GM',pc(a.aGMp),(a.aGMp>=a.bGMp?'+':'')+((a.aGMp-a.bGMp)*100).toFixed(1)+'pp vs current','vg');
+    mcOwner(
+      a.bGMp>=IND.gm?'cg':a.bGMp<IND.gm*.7?'cr':'cw',
+      'Gross margin', 'kept from every dollar made after paying for what you sell',
+      pc(a.bGMp), gmPct+'¢',
+      fmt(a.bGM)+'/yr · target '+pc(IND.gm), '',
+      a.bGMp>=IND.gm?'vg':a.bGMp<IND.gm*.7?'vr':'va'
+    )+
+    mcOwner(
+      a.bNet>=0?'cg':'cr',
+      'Net margin', 'your actual profit after every expense',
+      pc(S.revenue?a.bNet/S.revenue:0), netAmt,
+      (a.bNet<0?'-':'')+fmt(a.bNet)+'/yr', '',
+      a.bNet>=0?'vg':'vr'
+    )+
+    mcOwner(
+      'cb',
+      IND.tR, 'total money that came in the door',
+      fmt(S.revenue), fmt(S.revenue),
+      fmt(S.revenue/12)+'/mo', fmt(S.revenue/12)+'/mo average',
+      ''
+    )+
+    mcOwner(
+      'cw',
+      'COGS + Labor', 'it cost you this much to deliver every dollar in sales',
+      fmt(a.bT), S.revenue?Math.round(a.bT/S.revenue*100)+'¢':'—',
+      S.revenue?Math.round(a.bT/S.revenue*100)+'% of revenue':'', '',
+      'va'
+    )+
+    (ownerMode && runwayMo
+      ? '<div class="mc cb"><div class="mv" style="color:var(--blu)">'+runwayMo+' mo</div><div class="owner-kpi-lbl">how long your cash lasts at current spending</div></div>'
+      : mc('','Adjusted GM',pc(a.aGMp),(a.aGMp>=a.bGMp?'+':'')+((a.aGMp-a.bGMp)*100).toFixed(1)+'pp vs current','vg')
+    );
 }
 function mc(col,label,val,sub,vc){return'<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+'</div><div class="ms">'+sub+'</div></div>';}
 
@@ -2235,11 +2312,18 @@ function renderScore(){
   var h = calcHealthGrade({revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex,avgMonthlyBurn:S.avgMonthlyBurn,currentCash:S.currentCash,cashOnHand:S.cashOnHand}, IND);
   var cMap = {A:'sA',B:'sB',C:'sC',D:'sD'};
   $('scoreRing').innerHTML='<div class="score-ring '+cMap[h.grade]+'">'+h.grade+'</div>';
-  $('scoreLabel').textContent=h.label;
+  if(ownerMode){
+    var ownerLabels={A:'Your business is in great shape',B:'Your business is doing well',C:'A few things need attention',D:'Some issues need to be addressed'};
+    $('scoreLabel').textContent=ownerLabels[h.grade]||h.label;
+  } else {
+    $('scoreLabel').textContent=h.label;
+  }
 }
 
 function renderBenchmarks(){
   if(!$('benchmarks'))return;
+  // Hide technical benchmarks in owner mode
+  if(ownerMode){ $('benchmarks').innerHTML=''; return; }
   var a=getAdj(),lb=S.revenue?S.labor/S.revenue:0,ob=S.revenue?S.opex/S.revenue:0;
   var items=[
     {l:'Gross margin',v:a.bGMp,t:IND.gm,mn:.05,mx:.95,inv:false},
@@ -2359,6 +2443,38 @@ function renderInsights(){
   var box=$('insightBox');
   if(!box)return;
   box.className='ibox '+overallType;
+
+  // Owner mode: swap to plain-language insight header
+  if(ownerMode){
+    var bads2=insights.filter(function(i){return i.type==='bad';});
+    var warns2=insights.filter(function(i){return i.type==='warn';});
+    var goods2=insights.filter(function(i){return i.type==='good';});
+    var ordered2=bads2.concat(warns2).concat(goods2);
+    var iconMap2={good:'✓',warn:'⚡',bad:'⚠',info:'→'};
+    var colorMap2={good:'var(--acc)',warn:'var(--amb)',bad:'var(--red)',info:'var(--blu)'};
+    var bgMap2={good:'var(--accL)',warn:'var(--ambL)',bad:'var(--redL)',info:'var(--bluL)'};
+    var bdrMap2={good:'#aecfbd',warn:'#e8d098',bad:'#e8b0b0',info:'#a8c0e0'};
+    box.innerHTML='<div style="font-family:var(--serif);font-size:15px;color:var(--blu);margin-bottom:1rem;font-weight:600">What\'s going on with '+(S.bizName||'your business')+'</div>'+
+      ordered2.slice(0,3).map(function(ins){
+        var icon=iconMap2[ins.type]||'→';
+        var col=colorMap2[ins.type]||'var(--acc)';
+        var bg=bgMap2[ins.type]||'var(--accL)';
+        var bdr=bdrMap2[ins.type]||'#aecfbd';
+        // Simplify body — strip financial jargon markers
+        var body=ins.body
+          .replace(/COGS/g,'your cost of goods')
+          .replace(/OPEX|OpEx/g,'overhead costs')
+          .replace(/gross margin/gi,'the profit from your sales')
+          .replace(/net margin/gi,'your bottom-line profit')
+          .replace(/benchmark/gi,'industry average')
+          .replace(/annualized/gi,'estimated for the year');
+        return'<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:9px;padding:.85rem 1rem;margin-bottom:.75rem">'+
+          '<div style="font-size:10px;color:'+col+';text-transform:uppercase;letter-spacing:.09em;font-weight:500;margin-bottom:.4rem">'+icon+' '+ins.title+'</div>'+
+          '<div style="font-size:13px;line-height:1.7;color:var(--txt)">'+body+'</div>'+
+          '</div>';
+      }).join('');
+    return;
+  }
 
   // Group by type for visual hierarchy
   var bads=insights.filter(function(i){return i.type==='bad';});
@@ -4179,6 +4295,60 @@ function sbRestoreCollapse(){
     var sb=$('appSidebar');
     if(sb) sb.classList.add('collapsed');
   }
+}
+
+
+// ── OWNER MODE ────────────────────────────────────────────────────
+var ownerMode = false;
+
+function toggleOwnerMode(){
+  ownerMode = !ownerMode;
+  localStorage.setItem('ownerMode', ownerMode ? '1' : '0');
+  applyOwnerMode();
+  // Re-render overview if we're on it
+  if(typeof AT !== 'undefined' && AT === 'overview') renderTool('overview');
+}
+
+function applyOwnerMode(){
+  var wrap   = $('sbModeWrap');
+  var toggle = $('sbModeToggle');
+  var icon   = $('sbModeIcon');
+  var name   = $('sbModeName');
+  var sub    = $('sbModeSub');
+  var banner = $('ownerBanner');
+  var pill   = $('ownerPill');
+
+  if(ownerMode){
+    if(wrap)   wrap.classList.add('owner-on');
+    if(toggle) toggle.classList.add('on');
+    if(icon)   icon.textContent = '🏢';
+    if(name)   name.textContent = 'Owner Mode';
+    if(sub)    sub.textContent  = 'Plain language for owners';
+    if(banner) banner.classList.add('on');
+    if(pill)   pill.classList.add('on');
+  } else {
+    if(wrap)   wrap.classList.remove('owner-on');
+    if(toggle) toggle.classList.remove('on');
+    if(icon)   icon.textContent = '📊';
+    if(name)   name.textContent = 'Advisor Mode';
+    if(sub)    sub.textContent  = 'Technical view for advisors';
+    if(banner) banner.classList.remove('on');
+    if(pill)   pill.classList.remove('on');
+  }
+}
+
+// Restore owner mode on load
+function ownerModeRestore(){
+  ownerMode = localStorage.getItem('ownerMode') === '1';
+  applyOwnerMode();
+}
+
+// Owner-aware mc() — swaps labels in snap cards
+function mcOwner(col, label, ownerLabel, val, ownerVal, sub, ownerSub, vc){
+  if(ownerMode){
+    return '<div class="mc '+col+'"><div class="mv '+vc+'">'+ownerVal+'</div><div class="owner-kpi-lbl">'+ownerLabel+'</div></div>';
+  }
+  return '<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+'</div><div class="ms">'+sub+'</div></div>';
 }
 
 function chatCheckShow(){
