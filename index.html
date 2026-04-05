@@ -472,17 +472,20 @@ footer strong{color:var(--acc)}
 <header>
   <span class="lmark">CFO Vault</span>
   <span class="ltag">CFO In Your Pocket</span>
+  <!-- Portfolio button — only shown when 2+ clients have data -->
   <button class="hbtn" id="btnPortfolio" onclick="showPortfolio()" style="display:none;align-items:center;gap:5px">&#x25A6; Portfolio</button>
-  <button class="hbtn" id="btnClients" onclick="openWorkspace()" style="display:flex;align-items:center;gap:5px">&#x1F465; Clients</button>
-  <div id="activeClientBadge"></div>
-  <div id="authUserArea"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
+  <!-- Keep hidden legacy buttons so existing JS still targets them without errors -->
+  <button id="btnClients" onclick="openWorkspace()" style="display:none">Clients</button>
+  <div id="activeClientBadge" style="display:none"></div>
+  <button class="hbtn" id="btnSave" onclick="savePeriod()" style="display:none">Save period</button>
+  <button class="hbtn" id="btnExport" onclick="exportData()" style="display:none">Export data</button>
+  <button class="hbtn" id="btnXLImport" onclick="authGuard(function(){document.getElementById('xlFi').click();})" style="display:none">Import P&amp;L</button>
+  <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()" style="display:none">Load saved</button>
+  <button class="hbtn" id="btnPDF" onclick="exportPDF()" style="display:none">Export PDF</button>
+  <button class="hbtn" id="btnReset" onclick="resetApp()" style="display:none">Start over</button>
+  <!-- Auth area stays visible in header -->
+  <div id="authUserArea" style="margin-left:auto"><span id="authUserEmail"></span><button id="btnLogout" onclick="authSignOut()">Sign out</button></div>
   <button id="btnLogin" onclick="showAuth('login')" style="display:none">Sign in</button>
-  <button class="hbtn" id="btnSave" onclick="savePeriod()">&#x1F4C5; Save period</button>
-  <button class="hbtn" id="btnExport" onclick="exportData()">&#x1F4E4; Export data</button>
-  <button class="hbtn" id="btnXLImport" onclick="authGuard(function(){document.getElementById('xlFi').click();})" style="display:none">&#x1F4CA; Import P&amp;L</button>
-  <button class="hbtn" id="btnImport" onclick="document.getElementById('jFi').click()">&#x1F4E5; Load saved</button>
-  <button class="hbtn pri" id="btnPDF" onclick="exportPDF()">&#x2B07; Export PDF</button>
-  <button class="hbtn" id="btnReset" onclick="resetApp()">&#x21A9; Start over</button>
 </header>
 <input type="file" id="xlFi" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jFi" accept=".json" style="display:none">
@@ -513,8 +516,17 @@ footer strong{color:var(--acc)}
     <button class="sb-nav-item" onclick="exportPDF()">
       <span class="sb-nav-icon">📄</span>Export PDF
     </button>
+    <button class="sb-nav-item" onclick="savePeriod()">
+      <span class="sb-nav-icon">💾</span>Save period
+    </button>
+    <button class="sb-nav-item" onclick="exportData()">
+      <span class="sb-nav-icon">📤</span>Export data
+    </button>
     <button class="sb-nav-item" onclick="togglePrep()" id="sbPrepBtn" style="display:none">
       <span class="sb-nav-icon">📋</span>Meeting Prep
+    </button>
+    <button class="sb-nav-item" onclick="resetApp()" style="color:var(--red)">
+      <span class="sb-nav-icon">↩</span>Start over
     </button>
   </div>
 
@@ -603,38 +615,8 @@ footer strong{color:var(--acc)}
 
 <!-- CONTENT -->
 <div id="content">
-  <!-- SNAPSHOT -->
-  <div class="sec" id="snapSec">Snapshot</div>
-  <div style="display:grid;grid-template-columns:auto 1fr;gap:18px;margin-bottom:1.5rem;align-items:start">
-    <div class="panel" style="text-align:center;min-width:148px;margin-bottom:0">
-      <div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Health score</div>
-      <div id="scoreRing" style="display:flex;justify-content:center;margin-bottom:.65rem"></div>
-      <div id="scoreLabel" style="font-size:12px;color:var(--mut);line-height:1.4"></div>
-    </div>
-    <div>
-      <div class="mrow" id="snapCards"></div>
-      <div class="panel" style="margin-bottom:0">
-        <div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Benchmarks — <span id="benchInd"></span></div>
-        <div id="benchmarks"></div>
-      </div>
-    </div>
-  </div>
-  <!-- AI -->
-  <div class="ai-box">
-    <div class="ai-head">
-      <div class="ai-left">
-        <div class="ai-icon">✦</div>
-        <div><div class="ai-title">AI financial advisor</div><div class="ai-sub" id="aiSub">Plain-language analysis with prioritized action items</div></div>
-      </div>
-      <button class="ai-btn" id="aiBtn" onclick="authGuard(runAI)">Analyze with AI</button>
-    </div>
-    <div class="ai-load" id="aiLoad"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Analyzing your financials...</span></div>
-    <div class="ai-out" id="aiOut"></div>
-  </div>
-  <!-- INSIGHTS -->
-  <div class="sec">Financial insights</div>
-  <div id="insightBox" class="ibox good" style="margin-bottom:1.5rem"></div>
-  <!-- TOOL NAV -->
+  <!-- Snapshot, AI, and Insights now live inside tp-overview (P&L tab) -->
+  <!-- TOOL NAV (hidden — sidebar handles this) -->
   <div class="tnav-wrap" id="toolNav"></div>
   <div id="toolPanels"></div>
 </div>
@@ -2165,16 +2147,28 @@ function buildToolNav(){
 
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
-  renderSnap();
-  renderScore();
-  renderBenchmarks();
-  renderInsights();
-  renderTool(AT);
+  // If on P&L overview, build the panel first so snapshot IDs exist in the DOM
+  if(AT==='overview'){
+    renderOverview();
+    renderSnap();
+    renderScore();
+    renderBenchmarks();
+    renderInsights();
+  } else {
+    // For other tools, just render that tool — no snapshot needed
+    renderTool(AT);
+  }
 }
 
 function renderTool(k){
   switch(k){
-    case 'overview':  renderOverview();  break;
+    case 'overview':
+      renderOverview();
+      renderSnap();
+      renderScore();
+      renderBenchmarks();
+      renderInsights();
+      break;
     case 'cashflow':  renderCashFlow();  break;
     case 'breakeven': renderBreakEven(); break;
     case 'pricing':   renderPricing();   break;
@@ -2441,7 +2435,39 @@ function renderCompareTable(moIdxs, MO, rows){
 function renderOverview(){
   var el=$('tp-overview'); if(!el) return;
   var a=getAdj();
-  el.innerHTML=
+
+  // ── Snapshot header (only shown on P&L tab) ──
+  var snapHeader=
+    '<div class="sec" id="snapSec">Snapshot — '+(S.bizName||IND.l)+'</div>'+
+    '<div style="display:grid;grid-template-columns:auto 1fr;gap:18px;margin-bottom:1.5rem;align-items:start">'+
+      '<div class="panel" style="text-align:center;min-width:148px;margin-bottom:0">'+
+        '<div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Health score</div>'+
+        '<div id="scoreRing" style="display:flex;justify-content:center;margin-bottom:.65rem"></div>'+
+        '<div id="scoreLabel" style="font-size:12px;color:var(--mut);line-height:1.4"></div>'+
+      '</div>'+
+      '<div>'+
+        '<div class="mrow" id="snapCards"></div>'+
+        '<div class="panel" style="margin-bottom:0">'+
+          '<div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Benchmarks — <span id="benchInd"></span></div>'+
+          '<div id="benchmarks"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="ai-box">'+
+      '<div class="ai-head">'+
+        '<div class="ai-left">'+
+          '<div class="ai-icon">✦</div>'+
+          '<div><div class="ai-title">AI financial advisor</div><div class="ai-sub" id="aiSub">Plain-language analysis with prioritized action items</div></div>'+
+        '</div>'+
+        '<button class="ai-btn" id="aiBtn" onclick="authGuard(runAI)">Analyze with AI</button>'+
+      '</div>'+
+      '<div class="ai-load" id="aiLoad"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>Analyzing your financials...</span></div>'+
+      '<div class="ai-out" id="aiOut"></div>'+
+    '</div>'+
+    '<div class="sec">Financial insights</div>'+
+    '<div id="insightBox" class="ibox good" style="margin-bottom:1.5rem"></div>';
+
+  el.innerHTML= snapHeader +
     '<div class="sec">Period selector</div>'+
     '<div class="panel" style="margin-bottom:1.5rem">'+
       '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.75rem">'+
