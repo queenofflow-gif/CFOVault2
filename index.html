@@ -3649,13 +3649,29 @@ function setUser(user){
     if(area) area.style.display='none';
     if(btnL) btnL.style.display='block';
     if(banner) banner.classList.add('on');
-    // Clear workspace state on sign out
+    // Clear all workspace + app state on sign out
     wsActiveId = null;
     localStorage.removeItem(WS_ACTIVE_KEY);
     wsSetActiveBadge(null);
-    // Hide portfolio
+    // Reset sidebar client label
+    var sbN=$('sbClientName'),sbS=$('sbClientSub');
+    if(sbN) sbN.textContent='No client';
+    if(sbS) sbS.textContent='Click to switch';
+    var sbCount=$('sbClientCount');
+    if(sbCount) sbCount.style.display='none';
+    // Reset sidebar user area
+    var sbU=$('sbUserArea'),sbLBtn=$('sbLoginBtn');
+    if(sbU) sbU.style.display='none';
+    if(sbLBtn) sbLBtn.style.display='flex';
+    // Hide sidebar tools, show pre-data
+    var sbT=$('sbTools');if(sbT)sbT.classList.remove('on');
+    var sbP=$('sbPreData');if(sbP)sbP.style.display='block';
+    // Hide portfolio and More button
     var portEl=$('portfolio'); if(portEl) portEl.classList.remove('on');
     var portBtn=$('btnPortfolio'); if(portBtn) portBtn.style.display='none';
+    var ha=$('hdrActions');if(ha)ha.classList.remove('on');
+    // Reset the whole app back to onboarding screen
+    resetApp();
   }
 }
 
