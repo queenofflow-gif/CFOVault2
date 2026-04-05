@@ -541,7 +541,7 @@ main{max-width:none;padding:1.75rem 2rem}
 <input type="file" id="jFi" accept=".json" style="display:none">
 
 <div id="appShell">
-<div id="appSidebar">
+<div id="appSidebar" style="display:none">
   <div class="sb-logo">
     <span class="sb-logo-text">CFO Vault</span>
     <button class="sb-collapse-btn" id="sbCollapseBtn" onclick="toggleSidebar()" title="Collapse sidebar">☰</button>
@@ -3591,6 +3591,8 @@ function setUser(user){
     if(banner) banner.classList.remove('on');
     var btnC = $('btnClients');
     if(btnC) btnC.style.display='none'; // sidebar handles clients
+    // Show sidebar when logged in
+    var sb=$('appSidebar'); if(sb){ sb.style.display='flex'; sbRestoreCollapse(); }
     // Update sidebar user area
     var sbU=$('sbUserArea'),sbL=$('sbLoginBtn'),sbAv=$('sbAvatar'),sbUN=$('sbUserName');
     if(sbU) sbU.style.display='flex';
@@ -3646,32 +3648,24 @@ function setUser(user){
       }
     });
   } else {
+    // ── SIGNED OUT — hide everything, go back to home ──
     if(area) area.style.display='none';
     if(btnL) btnL.style.display='block';
     if(banner) banner.classList.add('on');
-    // Clear all workspace + app state on sign out
+    // Clear workspace state
     wsActiveId = null;
     localStorage.removeItem(WS_ACTIVE_KEY);
-    wsSetActiveBadge(null);
-    // Reset sidebar client label
-    var sbN=$('sbClientName'),sbS=$('sbClientSub');
-    if(sbN) sbN.textContent='No client';
-    if(sbS) sbS.textContent='Click to switch';
-    var sbCount=$('sbClientCount');
-    if(sbCount) sbCount.style.display='none';
-    // Reset sidebar user area
-    var sbU=$('sbUserArea'),sbLBtn=$('sbLoginBtn');
-    if(sbU) sbU.style.display='none';
-    if(sbLBtn) sbLBtn.style.display='flex';
-    // Hide sidebar tools, show pre-data
-    var sbT=$('sbTools');if(sbT)sbT.classList.remove('on');
-    var sbP=$('sbPreData');if(sbP)sbP.style.display='block';
-    // Hide portfolio and More button
+    // Hide sidebar entirely
+    var sb=$('appSidebar'); if(sb) sb.style.display='none';
+    // Hide More button and portfolio
+    var ha=$('hdrActions'); if(ha) ha.classList.remove('on');
     var portEl=$('portfolio'); if(portEl) portEl.classList.remove('on');
     var portBtn=$('btnPortfolio'); if(portBtn) portBtn.style.display='none';
-    var ha=$('hdrActions');if(ha)ha.classList.remove('on');
-    // Reset the whole app back to onboarding screen
+    // Reset app state and show onboarding
     resetApp();
+    // After resetApp, make sure onboard is visible and content hidden
+    var ob=$('onboard'); if(ob) ob.style.display='block';
+    var ct=$('content'); if(ct) ct.classList.remove('on');
   }
 }
 
@@ -4165,13 +4159,13 @@ function toggleSidebar(){
   localStorage.setItem('sbCollapsed', collapsed ? '1' : '0');
 }
 
-// Restore sidebar state on load
-(function(){
+// Restore sidebar collapsed state (only once sidebar is shown after login)
+function sbRestoreCollapse(){
   if(localStorage.getItem('sbCollapsed')==='1'){
     var sb=$('appSidebar');
     if(sb) sb.classList.add('collapsed');
   }
-})();
+}
 
 function chatCheckShow(){
   var btn = $('chatBtn');
