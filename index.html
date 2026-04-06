@@ -160,6 +160,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:500;margin-left:3px}
 .tag-top{background:#f0e8fc;color:#5a2e8a}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--acc);color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.trend-arrow{font-size:11px;font-weight:600;margin-left:4px}
+.trend-arrow.up{color:var(--grn)}.trend-arrow.down{color:var(--red)}.trend-arrow.flat{color:var(--sub)}
+.trend-bar{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:4px}
+.trend-bar-seg{width:6px;border-radius:2px 2px 0 0;background:var(--acc);opacity:.5;transition:opacity .15s}
+.trend-bar-seg.active{opacity:1}
+.trend-bar-seg.neg{background:var(--red)}
+.snap-date{font-size:10px;color:var(--sub);margin-top:2px}
+/* Import confirm modal */
+#importConfirm{display:none;position:fixed;inset:0;background:rgba(15,20,15,.65);z-index:600;align-items:center;justify-content:center}
+#importConfirm.on{display:flex}
+.ic-box{background:var(--surf);border-radius:14px;padding:1.75rem;width:420px;max-width:calc(100vw - 2rem);border:1px solid var(--bdrS)}
+.ic-title{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--txt);margin-bottom:.4rem}
+.ic-sub{font-size:13px;color:var(--mut);line-height:1.6;margin-bottom:1.25rem}
+.ic-detail{background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem;font-size:13px;color:var(--txt)}
+.ic-detail strong{color:var(--acc)}
+.ic-period{margin-bottom:.75rem}
+.ic-period label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+.ic-period input{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-family:var(--sans);font-size:13px;padding:7px 10px;outline:none}
+.ic-period input:focus{border-color:var(--acc)}
+.ic-btns{display:flex;gap:8px;justify-content:flex-end}
+.ic-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--sans);border:none;transition:all .15s}
+.ic-btn.cancel{background:var(--surf2);color:var(--mut);border:1px solid var(--bdr)}
+.ic-btn.cancel:hover{background:var(--bdr)}
+.ic-btn.confirm{background:var(--acc);color:#fff}
+.ic-btn.confirm:hover{background:var(--accM)}
 .toast.show{opacity:1}
 .cw{position:relative;width:100%}
 hr{border:none;border-top:1px solid var(--bdr);margin:1.25rem 0}
@@ -505,6 +530,26 @@ main{max-width:none;padding:1.75rem 2rem}
 </div>
 
 <!-- AUTH OVERLAY -->
+<!-- Import confirmation modal -->
+<div id="importConfirm">
+  <div class="ic-box">
+    <div class="ic-title">Update client data</div>
+    <div class="ic-sub">This will replace the current financial data and save a snapshot to the client's history.</div>
+    <div class="ic-detail">
+      Client: <strong id="icClientName">—</strong><br>
+      File: <strong id="icFileName">—</strong>
+    </div>
+    <div class="ic-period">
+      <label>Period label (e.g. Q1 2026, FY2026, March 2026)</label>
+      <input type="text" id="icPeriodLabel" placeholder="e.g. Q1 2026" maxlength="30">
+    </div>
+    <div class="ic-btns">
+      <button class="ic-btn cancel" onclick="cancelImport()">Cancel</button>
+      <button class="ic-btn confirm" onclick="confirmImport()">Import &amp; save snapshot</button>
+    </div>
+  </div>
+</div>
+
 <div id="authOverlay">
   <div id="authBox">
     <div class="auth-logo">CFO Vault</div>
@@ -1866,7 +1911,7 @@ window.addEventListener('DOMContentLoaded', function(){
     g.appendChild(chip);
   });
   $('xlFi').addEventListener('change', function(e){
-    if(e.target.files[0]){ parseXL(e.target.files[0]); e.target.value=''; }
+    if(e.target.files[0]){ showImportConfirm(e.target.files[0]); e.target.value=''; }
   });
   $('jFi').addEventListener('change', handleJSON);
 });
@@ -2192,6 +2237,12 @@ function parseXL(file){
   var ha=$('hdrActions');if(ha)ha.classList.add('on');
         ['btnSave','btnExport','btnXLImport','btnImport','btnPDF','btnReset'].forEach(function(bid){var b=$(bid);if(b)b.style.display='block';});
         go();
+        // Save snapshot after successful import
+        setTimeout(function(){
+          var label = window._importPeriodLabel || S.period || new Date().toLocaleString('en-US',{month:'long',year:'numeric'});
+          window._importPeriodLabel = null;
+          saveSnapshot(label);
+        }, 300);
       }
     } catch(err){
       showStatus('err','Could not read file: '+err.message);
@@ -2497,20 +2548,28 @@ function renderSnap(){
   var burn = S.avgMonthlyBurn||Math.round((S.cogs+S.labor+S.opex)/12);
   var runwayMo = (S.currentCash||S.cashOnHand||0)>0 && burn>0 ? ((S.currentCash||S.cashOnHand||0)/burn).toFixed(1) : null;
 
+  // Trend data
+  var gmArrow = getTrendArrow('grossMarginPct', a.bGMp*100);
+  var netArrow = getTrendArrow('netMarginPct', S.revenue?a.bNet/S.revenue*100:0);
+  var gmBars = getTrendBars('grossMarginPct', true);
+  var netBars = getTrendBars('netMarginPct', true);
+
   _sc.innerHTML=
-    mcOwner(
+    mcTrend(
       a.bGMp>=IND.gm?'cg':a.bGMp<IND.gm*.7?'cr':'cw',
       'Gross margin', 'kept from every dollar made after paying for what you sell',
       pc(a.bGMp), gmPct+'¢',
       fmt(a.bGM)+'/yr · target '+pc(IND.gm), '',
-      a.bGMp>=IND.gm?'vg':a.bGMp<IND.gm*.7?'vr':'va'
+      a.bGMp>=IND.gm?'vg':a.bGMp<IND.gm*.7?'vr':'va',
+      gmArrow, gmBars
     )+
-    mcOwner(
+    mcTrend(
       a.bNet>=0?'cg':'cr',
       'Net margin', 'your actual profit after every expense',
       pc(S.revenue?a.bNet/S.revenue:0), netAmt,
       (a.bNet<0?'-':'')+fmt(a.bNet)+'/yr', '',
-      a.bNet>=0?'vg':'vr'
+      a.bNet>=0?'vg':'vr',
+      netArrow, netBars
     )+
     mcOwner(
       'cb',
@@ -2532,6 +2591,12 @@ function renderSnap(){
     );
 }
 function mc(col,label,val,sub,vc){return'<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+'</div><div class="ms">'+sub+'</div></div>';}
+function mcTrend(col,label,ownerLabel,val,ownerVal,sub,ownerSub,vc,arrow,bars){
+  if(ownerMode){
+    return '<div class="mc '+col+'"><div class="mv '+vc+'">'+ownerVal+'</div><div class="owner-kpi-lbl">'+ownerLabel+'</div>'+(bars||'')+'</div>';
+  }
+  return '<div class="mc '+col+'"><div class="ml">'+label+'</div><div class="mv '+vc+'">'+val+(arrow||'')+'</div><div class="ms">'+sub+'</div>'+(bars||'')+'</div>';
+}
 
 // Shared health grade calculation — used by both dashboard and portfolio
 function calcHealthGrade(s, ind){
@@ -2566,7 +2631,6 @@ function calcHealthGrade(s, ind){
 function renderScore(){
   if(!$('scoreRing'))return;
   var a=getAdj(), n=S.revenue?a.bNet/S.revenue:0;
-  // Use shared function with current S and IND
   var h = calcHealthGrade({revenue:S.revenue,cogs:S.cogs,labor:S.labor,opex:S.opex,avgMonthlyBurn:S.avgMonthlyBurn,currentCash:S.currentCash,cashOnHand:S.cashOnHand}, IND);
   var cMap = {A:'sA',B:'sB',C:'sC',D:'sD'};
   $('scoreRing').innerHTML='<div class="score-ring '+cMap[h.grade]+'">'+h.grade+'</div>';
@@ -2575,6 +2639,17 @@ function renderScore(){
     $('scoreLabel').textContent=ownerLabels[h.grade]||h.label;
   } else {
     $('scoreLabel').textContent=h.label;
+  }
+  // Show last snapshot label and count if available
+  var snapLabel = getLastSnapshotLabel();
+  var snapCount = S.snapshots ? S.snapshots.length : 0;
+  var snapEl = $('scoreSnap');
+  if(snapEl){
+    if(snapLabel){
+      snapEl.textContent = snapCount+' snapshot'+(snapCount!==1?'s':'')+' · Last: '+snapLabel;
+    } else {
+      snapEl.textContent = 'No snapshots yet — import a P&L to start tracking trends';
+    }
   }
 }
 
@@ -2827,6 +2902,7 @@ function renderOverview(){
         '<div style="font-family:var(--serif);font-size:14px;margin-bottom:.75rem;font-weight:500">Health score</div>'+
         '<div id="scoreRing" style="display:flex;justify-content:center;margin-bottom:.65rem"></div>'+
         '<div id="scoreLabel" style="font-size:12px;color:var(--mut);line-height:1.4"></div>'+
+        '<div id="scoreSnap" style="font-size:10px;color:var(--sub);margin-top:6px;line-height:1.4"></div>'+
       '</div>'+
       '<div>'+
         '<div class="mrow" id="snapCards"></div>'+
@@ -3598,6 +3674,116 @@ function relativeTime(iso){
 
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── TREND TRACKING ────────────────────────────────────────────────
+var _pendingImportFile = null;
+
+function showImportConfirm(file){
+  if(!currentUser){
+    // Not logged in — just import without confirm
+    parseXL(file);
+    return;
+  }
+  _pendingImportFile = file;
+  var idx = wsGetIndex();
+  var entry = wsActiveId ? idx.find(function(w){ return w.id===wsActiveId; }) : null;
+  var clientName = entry ? entry.name : (S.bizName || 'this client');
+  var now = new Date();
+  var defaultPeriod = now.toLocaleString('en-US',{month:'long',year:'numeric'});
+  var icName = $('icClientName');
+  var icFile = $('icFileName');
+  var icPeriod = $('icPeriodLabel');
+  if(icName) icName.textContent = clientName;
+  if(icFile) icFile.textContent = file.name;
+  if(icPeriod) icPeriod.value = S.period || defaultPeriod;
+  var modal = $('importConfirm');
+  if(modal) modal.classList.add('on');
+  setTimeout(function(){ var p=$('icPeriodLabel'); if(p) p.focus(); }, 200);
+}
+
+function cancelImport(){
+  _pendingImportFile = null;
+  var modal = $('importConfirm');
+  if(modal) modal.classList.remove('on');
+}
+
+function confirmImport(){
+  var modal = $('importConfirm');
+  if(modal) modal.classList.remove('on');
+  var periodLabel = ($('icPeriodLabel').value||'').trim() || new Date().toLocaleString('en-US',{month:'long',year:'numeric'});
+  // Store the period label to use after parse completes
+  window._importPeriodLabel = periodLabel;
+  if(_pendingImportFile){
+    parseXL(_pendingImportFile);
+    _pendingImportFile = null;
+  }
+}
+
+// Called after a successful import to save a snapshot
+function saveSnapshot(periodLabel){
+  if(!wsActiveId || !S.revenue) return;
+  var ind = INDS[S.industry]||INDS.other;
+  var h = calcHealthGrade({
+    revenue:S.revenue, cogs:S.cogs, labor:S.labor, opex:S.opex,
+    avgMonthlyBurn:S.avgMonthlyBurn, currentCash:S.currentCash, cashOnHand:S.cashOnHand
+  }, ind);
+  var snap = {
+    date: new Date().toISOString(),
+    period: periodLabel || S.period || new Date().toLocaleString('en-US',{month:'long',year:'numeric'}),
+    revenue: S.revenue,
+    cogs: S.cogs,
+    labor: S.labor,
+    opex: S.opex,
+    grossMarginPct: Math.round(h.gm*1000)/10,
+    netMarginPct: Math.round(h.net*1000)/10,
+    laborPct: S.revenue ? Math.round(S.labor/S.revenue*1000)/10 : 0,
+    runway: Math.round(h.runway*10)/10,
+    grade: h.grade
+  };
+  // Load existing snapshots, append, keep last 24
+  var existing = S.snapshots || [];
+  existing.push(snap);
+  if(existing.length > 24) existing = existing.slice(-24);
+  S.snapshots = existing;
+  // Save to Supabase via normal workspace save
+  wsSaveActive();
+  toast('Snapshot saved: '+snap.period);
+}
+
+// Get trend arrow vs previous snapshot
+function getTrendArrow(field, current){
+  if(!S.snapshots || S.snapshots.length < 2) return '';
+  var prev = S.snapshots[S.snapshots.length-2];
+  if(prev[field] === undefined) return '';
+  var diff = current - prev[field];
+  var threshold = 0.5;
+  if(Math.abs(diff) < threshold) return '<span class="trend-arrow flat">→</span>';
+  return diff > 0
+    ? '<span class="trend-arrow up">↑ '+Math.abs(diff).toFixed(1)+'%</span>'
+    : '<span class="trend-arrow down">↓ '+Math.abs(diff).toFixed(1)+'%</span>';
+}
+
+// Mini sparkline bar for snapshot cards
+function getTrendBars(field, isGoodHigh){
+  if(!S.snapshots || S.snapshots.length < 2) return '';
+  var snaps = S.snapshots.slice(-6);
+  var vals = snaps.map(function(s){ return s[field]||0; });
+  var max = Math.max.apply(null, vals.map(Math.abs)) || 1;
+  var bars = vals.map(function(v, i){
+    var h = Math.max(4, Math.round(Math.abs(v)/max*20));
+    var isLast = i === vals.length-1;
+    var isNeg = v < 0;
+    return '<div class="trend-bar-seg'+(isLast?' active':'')+(isNeg?' neg':'')+'" style="height:'+h+'px" title="'+v+'%"></div>';
+  }).join('');
+  return '<div class="trend-bar">'+bars+'</div>';
+}
+
+// Get last snapshot label
+function getLastSnapshotLabel(){
+  if(!S.snapshots || !S.snapshots.length) return '';
+  var last = S.snapshots[S.snapshots.length-1];
+  return last.period || '';
 }
 
 // ── WORKSPACE SYSTEM (Cloud-synced via Supabase) ──────────────────
